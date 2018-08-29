@@ -1,0 +1,10 @@
+Package: Heron
+Title: A Package of Various Tools
+Version: 0.0.0.9001
+Authors@R: person(“Nicholas”, “Cooley”, email = “npc19@pitt.edu”, role = c("aut", "cre"))
+Description: Heron is a package of tools created and used by the author for comparative genomics.
+Depends: R (>= 3.5.0)
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.0
