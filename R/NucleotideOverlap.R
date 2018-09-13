@@ -7,7 +7,7 @@
 #' @param TotalCov Return coverage as a percentage of the smaller gene or both genes, defaults to TRUE.
 #' @param DefaultFilter Filter returned predictions based on the differences in gene length, gene starts, and gene stops.
 #' @param FilterOverlap Filter returned predictions based on number of exact nucleotides linking two genes, missing by default.
-#' @param FilterCoverage Filter returned predictions based on the %coverage of the linking nucleotides, missing by default.
+#' @param FilterCoverage Filter returned predictions based on the percent coverage of the linking nucleotides, missing by default.
 #' @param Verbose Run with progress bar, return total upon completion.
 #' @keywords Orthology, Synteny
 #' @export

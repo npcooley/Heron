@@ -25,7 +25,7 @@ NucleotideOverlap(SyntenyObject, GeneCalls, LimitIndex = TRUE,
 
 \item{FilterOverlap}{Filter returned predictions based on number of exact nucleotides linking two genes, missing by default.}
 
-\item{FilterCoverage}{Filter returned predictions based on the %coverage of the linking nucleotides, missing by default.}
+\item{FilterCoverage}{Filter returned predictions based on the percent coverage of the linking nucleotides, missing by default.}
 }
 \description{
 A function for determining nucleotide overlap that links genes.
