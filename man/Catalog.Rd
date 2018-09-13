@@ -4,13 +4,13 @@
 \alias{Catalog}
 \title{A function for doing simple network analysis on sets of homologs.}
 \usage{
-Catalog(OrthologyObject, Verbose = FALSE)
+Catalog(OrthologsObject, Verbose = FALSE)
 }
 \arguments{
-\item{OrthologyObject}{a matrix of lists, the upper triange of which is filled with matrices of putative homologs}
+\item{OrthologsObject}{a matrix of lists, the upper triange of which is filled with matrices of putative homologs}
 }
 \description{
-Catalog takes in an object of type `Orthology` and builds a list of all complete linkage clusters. This list is in the form of matrices that denote how transitive the predicted clusters are.
+Catalog takes in an object of type `Orthologs` and builds a list of all complete linkage clusters. This list is in the form of matrices that denote how transitive the predicted clusters are.
 }
 \examples{
 Catalog()

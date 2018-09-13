@@ -33,5 +33,5 @@ A function for determining nucleotide overlap that links genes.
 \examples{
 NucleotideOverlap()
 }
-\keyword{Homology,}
+\keyword{Orthology,}
 \keyword{Synteny}

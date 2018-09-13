@@ -1,15 +1,15 @@
 #' A function for doing simple network analysis on sets of homologs.
 #' 
-#' Catalog takes in an object of type `Orthology` and builds a list of all complete linkage clusters. This list is in the form of matrices that denote how transitive the predicted clusters are.
-#' @param OrthologyObject a matrix of lists, the upper triange of which is filled with matrices of putative homologs
+#' Catalog takes in an object of type `Orthologs` and builds a list of all complete linkage clusters. This list is in the form of matrices that denote how transitive the predicted clusters are.
+#' @param OrthologsObject a matrix of lists, the upper triange of which is filled with matrices of putative homologs
 #' @keywords Homology
 #' @export
 #' @examples
 #' Catalog()
 
-Catalog <- function(OrthologyObject,
+Catalog <- function(OrthologsObject,
                     Verbose = FALSE) {
-  stopifnot(nrow(OrthologyObject) >= 3L)
+  stopifnot(nrow(OrthologsObject) >= 3L)
   if (Verbose == TRUE) {
     TimeStart <- Sys.time()
     pBar <- txtProgressBar(style = 1L)
@@ -35,10 +35,10 @@ Catalog <- function(OrthologyObject,
   
   ######
   # UpFront Math
-  Size <- nrow(OrthologyObject)
+  Size <- nrow(OrthologsObject)
   CoreSize <- ((Size - 1L) * Size) / 2L
   MaxUsefulIterations <- Size - 1L # This would really be -2, but the iterator is created beforehand
-  FilledPositions <- OrthologyObject[upper.tri(OrthologyObject)]
+  FilledPositions <- OrthologsObject[upper.tri(OrthologsObject)]
   TotalRows <- sapply(FilledPositions,
                       function(x) nrow(x),
                       simplify = TRUE)
@@ -52,9 +52,9 @@ Catalog <- function(OrthologyObject,
   Count <- 1L
   for (m1 in seq_len(Size - 1L)) {
     for (m2 in (m1 + 1L):Size) {
-      CurrentRows <- nrow(OrthologyObject[m1, m2][[1]])
-      PairsMatrix[(Count:(Count + CurrentRows - 1L)), m1] <- as.integer(OrthologyObject[m1, m2][[1]][, 1])
-      PairsMatrix[(Count:(Count + CurrentRows - 1L)), m2] <- as.integer(OrthologyObject[m1, m2][[1]][, 2])
+      CurrentRows <- nrow(OrthologsObject[m1, m2][[1]])
+      PairsMatrix[(Count:(Count + CurrentRows - 1L)), m1] <- as.integer(OrthologsObject[m1, m2][[1]][, 1])
+      PairsMatrix[(Count:(Count + CurrentRows - 1L)), m2] <- as.integer(OrthologsObject[m1, m2][[1]][, 2])
       Count <- Count + CurrentRows
     }
   }

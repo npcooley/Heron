@@ -9,7 +9,7 @@
 #' @param FilterOverlap Filter returned predictions based on number of exact nucleotides linking two genes, missing by default.
 #' @param FilterCoverage Filter returned predictions based on the %coverage of the linking nucleotides, missing by default.
 #' @param Verbose Run with progress bar, return total upon completion.
-#' @keywords Homology, Synteny
+#' @keywords Orthology, Synteny
 #' @export
 #' @examples
 #' NucleotideOverlap()
@@ -26,6 +26,8 @@ NucleotideOverlap <- function(SyntenyObject,
   ######
   # Error Checking
   # Require names for synteny object, DECIPHER be loaded, object sizes, some index checking
+  # Parameters Default Filter, FilterOverlap, and Filter Coverage have been depreciated and
+  # a filtering function is under construction
   ######
   
   L <- nrow(SyntenyObject)
@@ -655,117 +657,118 @@ NucleotideOverlap <- function(SyntenyObject,
       # Filter Hit Data
       # if DefaultFilter, predicted orthologs are filtered based on the harmonic mean
       # of the delta gene length, delta start, and delta stop
+      # FILTER IS CURRENTLY NOT IMPLEMENTED HERE
       ######
       
-      if (DefaultFilter) {
-        DeltaStart <- abs(QueryStartDisplacement - SubjectStartDisplacement)
-        DeltaStop <- abs(QueryStopDisplacement - SubjectStopDisplacement)
-        DeltaGeneLength <- abs(Q.Length[OutPutMatrix[, "QueryGene"]] - S.Length[OutPutMatrix[, "SubjectGene"]])
-        ######
-        # Filter off harmonic mean of delta start
-        ######
-        df <- data.frame("y" = sort(DeltaStart),
-                         "x" = seq_along(DeltaStart))
-        spl <- smooth.spline(df$x,
-                             df$y,
-                             spar = 0.01)
-        predictedline <- predict(spl,
-                                 x = df$x,
-                                 deriv = 0)
-        derv <- sapply(df$x,
-                       function(y) predict(spl,
-                                           x = y,
-                                           deriv = 1),
-                       simplify = TRUE,
-                       USE.NAMES = FALSE)
-        harm <- which.min(abs(unlist(derv[2, ]) * -1L - 1L))
-        Filt <- df$y[harm]
-        SFilter <- which(DeltaStart <= Filt)
-        ######
-        # filter off harmonic mean of delta stop
-        ######
-        df <- data.frame("y" = sort(DeltaStop),
-                         "x" = seq_along(DeltaStop))
-        spl <- smooth.spline(df$x,
-                             df$y,
-                             spar = 0.01)
-        predictedline <- predict(spl,
-                                 x = df$x,
-                                 deriv = 0)
-        derv <- sapply(df$x,
-                       function(y) predict(spl,
-                                           x = y,
-                                           deriv = 1),
-                       simplify = TRUE,
-                       USE.NAMES = FALSE)
-        harm <- which.min(abs(unlist(derv[2, ]) * -1L - 1L))
-        Filt <- df$y[harm]
-        EFilter <- which(DeltaStop <= Filt)
-        ######
-        # filter off the harmonic mean of the delta gene lengths
-        ######
-        df <- data.frame("y" = sort(DeltaGeneLength),
-                         "x" = seq_along(DeltaGeneLength))
-        spl <- smooth.spline(df$x,
-                             df$y,
-                             spar = 0.01)
-        predictedline <- predict(spl,
-                                 x = df$x,
-                                 deriv = 0)
-        derv <- sapply(df$x,
-                       function(y) predict(spl,
-                                           x = y,
-                                           deriv = 1),
-                       simplify = TRUE,
-                       USE.NAMES = FALSE)
-        harm <- which.min(abs(unlist(derv[2, ]) * -1L - 1L))
-        Filt <- df$y[harm]
-        GFilter <- which(DeltaGeneLength <= Filt)
-        
-        TotalFilt <- sort(unique(c(SFilter,
-                                   EFilter,
-                                   GFilter)))
-        if (OutputFormat != "Sparse") {
-          OutPutMatrix <- OutPutMatrix[TotalFilt, , drop = FALSE]
-          DisplacementMatrix <- DisplacementMatrix[TotalFilt, , drop = FALSE]
-        } else {
-          OutPutMatrix <- OutPutMatrix[TotalFilt, , drop = FALSE]
-          QueryStartDisplacement <- QueryStartDisplacement[TotalFilt]
-          QueryStopDisplacement <- QueryStopDisplacement[TotalFilt]
-          SubjectStartDisplacement <- SubjectStartDisplacement[TotalFilt]
-          SubjectStopDisplacement <- SubjectStopDisplacement[TotalFilt]
-        }
-      }
-      if (!missing(FilterCoverage)) {
-        FilterPos <- which(OutPutMatrix[, "Coverage"] < FilterCoverage)
-        if (length(FilterPos) > 0L) {
-          if (OutputFormat != "Sparse") {
-            OutPutMatrix <- OutPutMatrix[-FilterPos, , drop = FALSE]
-            DisplacementMatrix <- DisplacementMatrix[-FilterPos, , drop = FALSE]
-          } else {
-            OutPutMatrix <- OutPutMatrix[-FilterPos, , drop = FALSE]
-            QueryStartDisplacement <- QueryStartDisplacement[-FilterPos]
-            QueryStopDisplacement <- QueryStopDisplacement[-FilterPos]
-            SubjectStartDisplacement <- SubjectStartDisplacement[-FilterPos]
-            SubjectStopDisplacement <- SubjectStopDisplacement[-FilterPos]
-          }
-        }
-      }
-      if (!missing(FilterOverlap)) {
-        FilterPos <- which(OutPutMatrix[, "ExactOverlap"] < FilterOverlap)
-        if (length(FilterPos) > 0L) {
-          if (OutputFormat != "Sparse") {
-            OutPutMatrix <- OutPutMatrix[-FilterPos, , drop = FALSE]
-            DisplacementMatrix <- DisplacementMatrix[-FilterPos, , drop = FALSE]
-          } else {
-            OutPutMatrix <- OutPutMatrix[-FilterPos, , drop = FALSE]
-            QueryStartDisplacement <- QueryStartDisplacement[-FilterPos]
-            QueryStopDisplacement <- QueryStopDisplacement[-FilterPos]
-            SubjectStartDisplacement <- SubjectStartDisplacement[-FilterPos]
-            SubjectStopDisplacement <- SubjectStopDisplacement[-FilterPos]
-          }
-        }
-      }
+      #if (DefaultFilter) {
+      #  DeltaStart <- abs(QueryStartDisplacement - SubjectStartDisplacement)
+      #  DeltaStop <- abs(QueryStopDisplacement - SubjectStopDisplacement)
+      #  DeltaGeneLength <- abs(Q.Length[OutPutMatrix[, "QueryGene"]] - S.Length[OutPutMatrix[, "SubjectGene"]])
+      #  ######
+      #  # Filter off harmonic mean of delta start
+      #  ######
+      #  df <- data.frame("y" = sort(DeltaStart),
+      #                   "x" = seq_along(DeltaStart))
+      #  spl <- smooth.spline(df$x,
+      #                       df$y,
+      #                       spar = 0.01)
+      #  predictedline <- predict(spl,
+      #                           x = df$x,
+      #                           deriv = 0)
+      #  derv <- sapply(df$x,
+      #                 function(y) predict(spl,
+      #                                     x = y,
+      #                                     deriv = 1),
+      #                 simplify = TRUE,
+      #                 USE.NAMES = FALSE)
+      #  harm <- which.min(abs(unlist(derv[2, ]) * -1L - 1L))
+      #  Filt <- df$y[harm]
+      #  SFilter <- which(DeltaStart <= Filt)
+      #  ######
+      #  # filter off harmonic mean of delta stop
+      #  ######
+      #  df <- data.frame("y" = sort(DeltaStop),
+      #                   "x" = seq_along(DeltaStop))
+      #  spl <- smooth.spline(df$x,
+      #                       df$y,
+      #                       spar = 0.01)
+      #  predictedline <- predict(spl,
+      #                           x = df$x,
+      #                           deriv = 0)
+      #  derv <- sapply(df$x,
+      #                 function(y) predict(spl,
+      #                                     x = y,
+      #                                     deriv = 1),
+      #                 simplify = TRUE,
+      #                 USE.NAMES = FALSE)
+      #  harm <- which.min(abs(unlist(derv[2, ]) * -1L - 1L))
+      #  Filt <- df$y[harm]
+      #  EFilter <- which(DeltaStop <= Filt)
+      #  ######
+      #  # filter off the harmonic mean of the delta gene lengths
+      #  ######
+      #  df <- data.frame("y" = sort(DeltaGeneLength),
+      #                   "x" = seq_along(DeltaGeneLength))
+      #  spl <- smooth.spline(df$x,
+      #                       df$y,
+      #                       spar = 0.01)
+      #  predictedline <- predict(spl,
+      #                           x = df$x,
+      #                           deriv = 0)
+      #  derv <- sapply(df$x,
+      #                 function(y) predict(spl,
+      #                                     x = y,
+      #                                     deriv = 1),
+      #                 simplify = TRUE,
+      #                 USE.NAMES = FALSE)
+      #  harm <- which.min(abs(unlist(derv[2, ]) * -1L - 1L))
+      #  Filt <- df$y[harm]
+      #  GFilter <- which(DeltaGeneLength <= Filt)
+      #  
+      #  TotalFilt <- sort(unique(c(SFilter,
+      #                             EFilter,
+      #                             GFilter)))
+      #  if (OutputFormat != "Sparse") {
+      #    OutPutMatrix <- OutPutMatrix[TotalFilt, , drop = FALSE]
+      #    DisplacementMatrix <- DisplacementMatrix[TotalFilt, , drop = FALSE]
+      #  } else {
+      #    OutPutMatrix <- OutPutMatrix[TotalFilt, , drop = FALSE]
+      #    QueryStartDisplacement <- QueryStartDisplacement[TotalFilt]
+      #    QueryStopDisplacement <- QueryStopDisplacement[TotalFilt]
+      #    SubjectStartDisplacement <- SubjectStartDisplacement[TotalFilt]
+      #    SubjectStopDisplacement <- SubjectStopDisplacement[TotalFilt]
+      #  }
+      #}
+      #if (!missing(FilterCoverage)) {
+      #  FilterPos <- which(OutPutMatrix[, "Coverage"] < FilterCoverage)
+      #  if (length(FilterPos) > 0L) {
+      #    if (OutputFormat != "Sparse") {
+      #      OutPutMatrix <- OutPutMatrix[-FilterPos, , drop = FALSE]
+      #      DisplacementMatrix <- DisplacementMatrix[-FilterPos, , drop = FALSE]
+      #    } else {
+      #      OutPutMatrix <- OutPutMatrix[-FilterPos, , drop = FALSE]
+      #      QueryStartDisplacement <- QueryStartDisplacement[-FilterPos]
+      #      QueryStopDisplacement <- QueryStopDisplacement[-FilterPos]
+      #      SubjectStartDisplacement <- SubjectStartDisplacement[-FilterPos]
+      #      SubjectStopDisplacement <- SubjectStopDisplacement[-FilterPos]
+      #    }
+      #  }
+      #}
+      #if (!missing(FilterOverlap)) {
+      #  FilterPos <- which(OutPutMatrix[, "ExactOverlap"] < FilterOverlap)
+      #  if (length(FilterPos) > 0L) {
+      #    if (OutputFormat != "Sparse") {
+      #      OutPutMatrix <- OutPutMatrix[-FilterPos, , drop = FALSE]
+      #      DisplacementMatrix <- DisplacementMatrix[-FilterPos, , drop = FALSE]
+      #    } else {
+      #      OutPutMatrix <- OutPutMatrix[-FilterPos, , drop = FALSE]
+      #      QueryStartDisplacement <- QueryStartDisplacement[-FilterPos]
+      #      QueryStopDisplacement <- QueryStopDisplacement[-FilterPos]
+      #      SubjectStartDisplacement <- SubjectStartDisplacement[-FilterPos]
+      #      SubjectStopDisplacement <- SubjectStopDisplacement[-FilterPos]
+      #    }
+      #  }
+      #}
       
       if (Verbose) {
         TotalCounter <- TotalCounter + 1L
@@ -800,7 +803,7 @@ NucleotideOverlap <- function(SyntenyObject,
     print(TotalTimeStop - TotalTimeStart)
   }
   dimnames(ResultMatrix) <- dimnames(SyntenyObject)
-  class(ResultMatrix) <- "Homology"
+  class(ResultMatrix) <- "Orthologs"
   return(ResultMatrix)
 }
 

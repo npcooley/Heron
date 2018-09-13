@@ -3,6 +3,8 @@
 export(Catalog)
 export(CoreAligner)
 export(EdgeMatrix)
+export(GetOrthologSummary)
 export(NCBIGFFParser)
 export(NucleotideOverlap)
+export(ReadMCL)
 export(SubCatalog)

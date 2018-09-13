@@ -2,12 +2,12 @@
 % Please edit documentation in R/EdgeMatrix.R
 \name{EdgeMatrix}
 \alias{EdgeMatrix}
-\title{A Function for creating a matrix of `edges` or predicted homologs}
+\title{A Function for creating a matrix of `edges` or predicted orthologs}
 \usage{
-EdgeMatrix(OrthologyObject)
+EdgeMatrix(OrthologsObject)
 }
 \arguments{
-\item{OrthologyObject}{An object of predicted Orthologs with various integers relating to that prediction}
+\item{OrthologsObject}{An object of predicted Orthologs with various integers relating to that prediction}
 }
 \description{
 EdgeMatrix exists internally in `Catalog`, but `Catalog` can be an intensely time consuming function for very large datasets. `EdgeMatrix` combined with `SubCatalog` allows for the construction of very large complete linkage networks to be passed to the grid, or otherwise parallelized.
