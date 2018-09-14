@@ -155,7 +155,7 @@ GetOrthologSummary <- function(OrthologsObject,
   
   if (Verbose) {
     TimeStop <- Sys.time()
-    cat("\t")
+    cat("\n")
     print(TimeStop - TimeStart)
   }
   return(DF)
