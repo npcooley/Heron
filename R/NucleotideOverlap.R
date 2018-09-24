@@ -195,6 +195,8 @@ NucleotideOverlap <- function(SyntenyObject,
                      Q.HitEnds[HitCounter] <= Q.Stop[z1] &
                      QHI[HitCounter] == Q.Index[z1]) {
             # Hit overlaps left bound of current query gene
+            # Stay on the current gene
+            # And go to the next hit
             CurrentGene <- z1
             Q.NucOverLapL <- Q.Start[z1]
             Q.NucOverLapR <- Q.HitEnds[HitCounter]
@@ -231,6 +233,8 @@ NucleotideOverlap <- function(SyntenyObject,
                      Q.HitEnds[HitCounter] <= Q.Stop[z1] &
                      QHI[HitCounter] == Q.Index[z1]) {
             # Hit occurs entirely within current query gene
+            # Stay on the current gene
+            # And go to the next hit
             CurrentGene <- z1
             Q.NucOverLapL <- Q.HitStarts[HitCounter]
             Q.NucOverLapR <- Q.HitEnds[HitCounter]
@@ -258,6 +262,7 @@ NucleotideOverlap <- function(SyntenyObject,
                      Q.HitEnds[HitCounter] > Q.Stop[z1] &
                      QHI[HitCounter] == Q.Index[z1]) {
             # Hit overlaps right bound of current query gene
+            # Stay on the current hit and go to the next gene
             CurrentGene <- z1
             Q.NucOverLapL <- Q.HitStarts[HitCounter]
             Q.NucOverLapR <- Q.Stop[z1]
@@ -285,12 +290,12 @@ NucleotideOverlap <- function(SyntenyObject,
                                      PositionCounter = AddCounter,
                                      AdditionalCols = ExtraCols)
             AddCounter <- AddCounter + 1L
-            HitCounter <- HitCounter + 1L
             break
           } else if (Q.HitStarts[HitCounter] < Q.Start[z1] &
                      Q.HitEnds[HitCounter] > Q.Stop[z1] &
                      QHI[HitCounter] == Q.Index[z1]) {
             # Hit eclipses current query gene
+            # Stay on the current hit, and go to the next gene
             CurrentGene <- z1
             Q.NucOverLapL <- Q.Start[z1]
             Q.NucOverLapR <- Q.Stop[z1]
@@ -466,6 +471,7 @@ NucleotideOverlap <- function(SyntenyObject,
                        S.HitEnds[HitCounter] > S.Stop[z2] &
                        SubjectHitIndex[HitCounter] == S.Index[z2]) {
               # Hit overlaps right bound of current subject gene
+              # Stay on the current hit and go to the next gene
               CurrentGene <- z2
               QueryGenePosition <- QueryMap[HitCounter]
               ExactOverLap <- S.Stop[z2] - S.HitStarts[HitCounter] + 1L

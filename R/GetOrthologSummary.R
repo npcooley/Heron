@@ -143,13 +143,15 @@ GetOrthologSummary <- function(OrthologsObject,
                      "NormDeltaStart" = unlist(NormStartDelta),
                      "NormDeltaStop" = unlist(NormStopDelta),
                      "NormGeneDiff" = unlist(GeneLengthDiff),
-                     "Similarity" = unlist(Scores))
+                     "Similarity" = unlist(Scores),
+                     stringsAsFactors = FALSE)
   } else {
     DF <- data.frame("Labels" = unlist(PairsCharacter),
                      "Coverage" = unlist(Coverage),
                      "NormDeltaStart" = unlist(NormStartDelta),
                      "NormDeltaStop" = unlist(NormStopDelta),
-                     "NormGeneDiff" = unlist(GeneLengthDiff))
+                     "NormGeneDiff" = unlist(GeneLengthDiff),
+                     stringsAsFactors = FALSE)
   }
   
   
