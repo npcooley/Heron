@@ -40,6 +40,11 @@ NCBIGFFParser <- function(GFFAddress,
     z3 <- readLines(z2)
     z4 <- strsplit(z3,
                    split = "\t")
+    TotalIndices <- sapply(z4,
+                           function(x) ifelse(test = length(x) == 9L,
+                                              yes = x[1],
+                                              no = NA))
+    TotalIndices <- unique(TotalIndices)[!is.na(unique(TotalIndices))]
     Index <- sapply(z4,
                     function(x) ifelse(test = length(x) == 9L & x[3] == "CDS",
                                        yes = x[1],
@@ -73,9 +78,8 @@ NCBIGFFParser <- function(GFFAddress,
                            !is.na(Stop) &
                            !is.na(Strand) &
                            !is.na(Product))]
-    IndNames <- unique(Index)
     Indices <- sapply(Index,
-                      function(x) which(IndNames == x),
+                      function(x) which(TotalIndices == x),
                       USE.NAMES = FALSE,
                       simplify = TRUE)
     

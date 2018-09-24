@@ -1,7 +1,7 @@
-print.Orthologs <- function (x,
-                             quote = FALSE,
-                             right = TRUE,
-                             ...) {
+print.Orthologs <- function(x,
+                            quote = FALSE,
+                            right = TRUE,
+                            ...) {
   d <- dim(x)
   if (is.null(d)) {
     stop ("x must be a square object of class 'Orthologs'.")

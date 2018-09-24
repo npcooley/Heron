@@ -29,6 +29,9 @@ ReadMCL <- function(FileName,
     if (length(Clusters[[i]]) > 2L) {
       Count <- 1L
       Total <- (length(Clusters[[i]])^2L - length(Clusters[[i]])) / 2L
+      o <- order(as.integer(str_extract(Clusters[[i]],
+                                        "^(\\d)+")))
+      Clusters[[i]] <- Clusters[[i]][o]
       ExpandedPairs[[i]] <- vector("list",
                                    length = Total)
       for (m1 in seq_len(length(Clusters[[i]]) - 1L)) {
