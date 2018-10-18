@@ -150,6 +150,8 @@ GetOrthologSummary <- function(OrthologsObject,
       
       ######
       # remove conflicts
+      # find indices that are reused, and remove the index with the weaker metric
+      # lower score or coverage, higher gene diff, or higher delta start/stop
       ######
       
       if (RemoveConflicts) {
@@ -172,7 +174,7 @@ GetOrthologSummary <- function(OrthologsObject,
             } else if (RemoveBy == "NormGeneDiff") {
               remove1[i] <- CurrentPair[which.max(NormGeneDiff[[Count]][CurrentPair])]
             }
-          }
+          } # loop through number of conflicts in the query indices
         }
         if (length(conflicts2) > 0L) {
           remove2 <- vector("integer",
@@ -190,23 +192,27 @@ GetOrthologSummary <- function(OrthologsObject,
             } else if (RemoveBy == "NormGeneDiff") {
               remove2[i] <- CurrentPair[which.max(NormGeneDiff[[Count]][CurrentPair])]
             }
-          }
+          } # loop through the number of conflicts in the subject indices
         }
-        if (length(remove1) > 0L & length(remove2) > 0L) {
+        if (length(conflicts1) > 0L & length(conflicts2) > 0L) {
           TotalRemove <- sort(unique(c(remove1,
                                        remove2)))
-        } else if (length(remove1) > 0L & length(remove2) == 0L) {
+        } else if (length(conflicts1) > 0L & length(conflicts2) == 0L) {
           TotalRemove <- sort(unique(remove1))
-        } else if (length(remove2 > 0L) & length(remove1) == 0L) {
+        } else if (length(conflicts2) > 0L & length(conflicts1) == 0L) {
           TotalRemove <- sort(unique(remove2))
         }
-        PairsCharacter[[Count]] <- PairsCharacter[[Count]][-TotalRemove]
-        Coverage[[Count]] <- Coverage[[Count]][-TotalRemove]
-        NormDeltaStart[[Count]] <- NormDeltaStart[[Count]][-TotalRemove]
-        NormDeltaStop[[Count]] <- NormDeltaStop[[Count]][-TotalRemove]
-        NormGeneDiff[[Count]] <- NormGeneDiff[[Count]][-TotalRemove]
-        Scores[[Count]] <- Scores[[Count]][-TotalRemove]
-      }
+        if (!any(is.na(TotalRemove))) {
+          PairsCharacter[[Count]] <- PairsCharacter[[Count]][-TotalRemove]
+          Coverage[[Count]] <- Coverage[[Count]][-TotalRemove]
+          NormDeltaStart[[Count]] <- NormDeltaStart[[Count]][-TotalRemove]
+          NormDeltaStop[[Count]] <- NormDeltaStop[[Count]][-TotalRemove]
+          NormGeneDiff[[Count]] <- NormGeneDiff[[Count]][-TotalRemove]
+          Scores[[Count]] <- Scores[[Count]][-TotalRemove]
+        } else {
+          print("Problem encountered in conflict resolution, no conflicts resolved.")
+        }
+      } # end of removal conditional
       
       ######
       # Go to next matrix position,
