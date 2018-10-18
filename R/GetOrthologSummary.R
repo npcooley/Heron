@@ -14,16 +14,24 @@ GetOrthologSummary <- function(OrthologsObject,
                                GeneCalls,
                                DBPath,
                                SimilarityScores = FALSE,
+                               RemoveConflicts = FALSE,
+                               RemoveBy = "Coverage",
                                Verbose = FALSE) {
   if (Verbose) {
     TimeStart <- Sys.time()
     pBar <- txtProgressBar(style = 1L)
   }
+  
+  ######
+  # make sure that gene calls are in
+  # ascending order
+  ######
+  
   if (any(lengths(OrthologsObject[lower.tri(OrthologsObject)]) == 0L)) {
-    stop("Orthologs object must not be in 'Sparse format'")
+    stop ("Orthologs object must not be in 'Sparse format'")
   }
   if (length(GeneCalls) != ncol(OrthologsObject)) {
-    stop("Orthologs object and gene predictions are not compatible")
+    stop ("Orthologs object and gene predictions are not compatible")
   }
   if (!("DECIPHER" %in% .packages())) {
     stop ("Required package DECIPHER is not loaded")
@@ -31,6 +39,11 @@ GetOrthologSummary <- function(OrthologsObject,
   if (!is(OrthologsObject, "Orthologs")) {
     stop ("Object is not an Orthologs object.")
   }
+  
+  if (RemoveBy == "Similarity" & !SimilarityScores) {
+    stop ("To remove conflicts by Similarity Scores, Similarity Scores must be calculated.")
+  }
+  
   if (SimilarityScores) {
     Genomes <- vector("list",
                         length = length(GeneCalls))
@@ -56,15 +69,15 @@ GetOrthologSummary <- function(OrthologsObject,
                               length = Total)
   CombinedGeneLength <- vector("list",
                                length = Total)
-  GeneLengthDiff <- vector("list",
+  NormGeneDiff <- vector("list",
                            length = Total)
   AbsStartDelta <- vector("list",
                           length = Total)
   AbsStopDelta <- vector("list",
                          length = Total)
-  NormStartDelta <- vector("list",
+  NormDeltaStart <- vector("list",
                            length = Total)
-  NormStopDelta <- vector("list",
+  NormDeltaStop <- vector("list",
                           length = Total)
   Scores <- vector("list",
                    length = Total)
@@ -73,6 +86,15 @@ GetOrthologSummary <- function(OrthologsObject,
   Count <- 1L
   for (m1 in seq_len(Size - 1L)) {
     for (m2 in (m1 + 1L):Size) {
+      
+      o <- order(GeneCalls[[m1]][, "Index"],
+                 GeneCalls[[m1]][, "Start"],
+                 decreasing = FALSE)
+      GeneCalls[[m1]] <- GeneCalls[[m1]][o, ]
+      o <- order(GeneCalls[[m2]][, "Index"],
+                 GeneCalls[[m2]][, "Start"],
+                 decreasing = FALSE)
+      GeneCalls[[m2]] <- GeneCalls[[m2]][o, ]
       ######
       # Find the distance from the closest hit to the start of the gene
       # in nucleotide space
@@ -88,15 +110,16 @@ GetOrthologSummary <- function(OrthologsObject,
       QueryGeneLength[[Count]] <- GeneCalls[[m1]][PairMatrix[[Count]][, 1L], "Stop"] - GeneCalls[[m1]][PairMatrix[[Count]][, 1L], "Start"] + 1L
       SubjectGeneLength[[Count]] <- GeneCalls[[m2]][PairMatrix[[Count]][, 2L], "Stop"] - GeneCalls[[m2]][PairMatrix[[Count]][, 2L], "Start"] + 1L
       CombinedGeneLength[[Count]] <- QueryGeneLength[[Count]] + SubjectGeneLength[[Count]]
-      GeneLengthDiff[[Count]] <- abs(QueryGeneLength[[Count]] - SubjectGeneLength[[Count]]) / CombinedGeneLength[[Count]]
-      NormStartDelta[[Count]] <- AbsStartDelta[[Count]] / CombinedGeneLength[[Count]]
-      NormStopDelta[[Count]] <- AbsStopDelta[[Count]] / CombinedGeneLength[[Count]]
+      NormGeneDiff[[Count]] <- abs(QueryGeneLength[[Count]] - SubjectGeneLength[[Count]]) / CombinedGeneLength[[Count]]
+      NormDeltaStart[[Count]] <- AbsStartDelta[[Count]] / CombinedGeneLength[[Count]]
+      NormDeltaStop[[Count]] <- AbsStopDelta[[Count]] / CombinedGeneLength[[Count]]
       PairsCharacter[[Count]] <- vector("character",
                                         length = nrow(OrthologsObject[m1, m2][[1]]))
       if (SimilarityScores) {
         Scores[[Count]] <- vector("list",
                                   length = nrow(OrthologsObject[m1, m2][[1]]))
       }
+      
       for (i in seq_len(nrow(OrthologsObject[m1, m2][[1]]))) {
         PairsCharacter[[Count]][i] <- paste(c(m1, m2),
                                             PairMatrix[[Count]][i, ],
@@ -122,38 +145,97 @@ GetOrthologSummary <- function(OrthologsObject,
                                                                                      verbose = FALSE),
                                                      includeTerminalGaps = TRUE,
                                                      verbose = FALSE)[1, 2]
-        }
-      }
+        } # end similarity scores conditional
+      } # end similarity scores loop
       
+      ######
+      # remove conflicts
+      ######
+      
+      if (RemoveConflicts) {
+        conflicts1 <- which(duplicated(PairMatrix[[Count]][, 1L]))
+        conflicts2 <- which(duplicated(PairMatrix[[Count]][, 2L]))
+        
+        if (length(conflicts1) > 0L) {
+          remove1 <- vector("integer",
+                            length = length(conflicts1))
+          for (i in seq_along(conflicts1)) {
+            CurrentPair <- which(PairMatrix[[Count]][, 1L] == PairMatrix[[Count]][conflicts1[i], 1L])
+            if (RemoveBy == "Coverage") {
+              remove1[i] <- CurrentPair[which.min(Coverage[[Count]][CurrentPair])]
+            } else if (RemoveBy == "Similarity") {
+              remove1[i] <- CurrentPair[which.min(Scores[[Count]][CurrentPair])]
+            } else if (RemoveBy == "NormDeltaStart") {
+              remove1[i] <- CurrentPair[which.max(NormDeltaStart[[Count]][CurrentPair])]
+            } else if (RemoveBy == "NormDeltaStop") {
+              remove1[i] <- CurrentPair[which.max(NormDeltaStop[[Count]][CurrentPair])]
+            } else if (RemoveBy == "NormGeneDiff") {
+              remove1[i] <- CurrentPair[which.max(NormGeneDiff[[Count]][CurrentPair])]
+            }
+          }
+        }
+        if (length(conflicts2) > 0L) {
+          remove2 <- vector("integer",
+                            length = length(conflicts2))
+          for (i in seq_along(conflicts2)) {
+            CurrentPair <- which(PairMatrix[[Count]][, 2L] == PairMatrix[[Count]][conflicts2[i], 2L])
+            if (RemoveBy == "Coverage") {
+              remove2[i] <- CurrentPair[which.min(Coverage[[Count]][CurrentPair])]
+            } else if (RemoveBy == "Similarity") {
+              remove2[i] <- CurrentPair[which.min(Scores[[Count]][CurrentPair])]
+            } else if (RemoveBy == "NormDeltaStart") {
+              remove2[i] <- CurrentPair[which.max(NormDeltaStart[[Count]][CurrentPair])]
+            } else if (RemoveBy == "NormDeltaStop") {
+              remove2[i] <- CurrentPair[which.max(NormDeltaStop[[Count]][CurrentPair])]
+            } else if (RemoveBy == "NormGeneDiff") {
+              remove2[i] <- CurrentPair[which.max(NormGeneDiff[[Count]][CurrentPair])]
+            }
+          }
+        }
+        if (length(remove1) > 0L & length(remove2) > 0L) {
+          TotalRemove <- sort(unique(c(remove1,
+                                       remove2)))
+        } else if (length(remove1) > 0L & length(remove2) == 0L) {
+          TotalRemove <- sort(unique(remove1))
+        } else if (length(remove2 > 0L) & length(remove1) == 0L) {
+          TotalRemove <- sort(unique(remove2))
+        }
+        PairsCharacter[[Count]] <- PairsCharacter[[Count]][-TotalRemove]
+        Coverage[[Count]] <- Coverage[[Count]][-TotalRemove]
+        NormDeltaStart[[Count]] <- NormDeltaStart[[Count]][-TotalRemove]
+        NormDeltaStop[[Count]] <- NormDeltaStop[[Count]][-TotalRemove]
+        NormGeneDiff[[Count]] <- NormGeneDiff[[Count]][-TotalRemove]
+        Scores[[Count]] <- Scores[[Count]][-TotalRemove]
+      }
       
       ######
       # Go to next matrix position,
       # Assign next list position
       ######
+      
       if (Verbose) {
         setTxtProgressBar(pb = pBar,
                           value = Count / Total)
       }
       Count <- Count + 1L
-    }
-  }
+    } # end of columns loop
+  } # end of rows loop
   if (SimilarityScores) {
     DF <- data.frame("Labels" = unlist(PairsCharacter),
                      "Coverage" = unlist(Coverage),
-                     "NormDeltaStart" = unlist(NormStartDelta),
-                     "NormDeltaStop" = unlist(NormStopDelta),
-                     "NormGeneDiff" = unlist(GeneLengthDiff),
+                     "NormDeltaStart" = unlist(NormDeltaStart),
+                     "NormDeltaStop" = unlist(NormDeltaStop),
+                     "NormGeneDiff" = unlist(NormGeneDiff),
                      "Similarity" = unlist(Scores),
                      stringsAsFactors = FALSE)
   } else {
     DF <- data.frame("Labels" = unlist(PairsCharacter),
                      "Coverage" = unlist(Coverage),
-                     "NormDeltaStart" = unlist(NormStartDelta),
-                     "NormDeltaStop" = unlist(NormStopDelta),
-                     "NormGeneDiff" = unlist(GeneLengthDiff),
+                     "NormDeltaStart" = unlist(NormDeltaStart),
+                     "NormDeltaStop" = unlist(NormDeltaStop),
+                     "NormGeneDiff" = unlist(NormGeneDiff),
                      stringsAsFactors = FALSE)
   }
-  
   
   if (Verbose) {
     TimeStop <- Sys.time()
@@ -162,3 +244,4 @@ GetOrthologSummary <- function(OrthologsObject,
   }
   return(DF)
 }
+

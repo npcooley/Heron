@@ -34,17 +34,37 @@ NCBIGFFParser <- function(GFFAddress,
     TimeStart <- Sys.time()
     pBar <- txtProgressBar(style = 1L)
   }
+  
+  ######
+  # There might be a better way to do this, but it works
+  # shrug
+  ######
+  
   for (i in seq_along(GFFAddress)) {
     z1 <- gzcon(url(GFFAddress[i]))
     z2 <- textConnection(readLines(z1))
     z3 <- readLines(z2)
     z4 <- strsplit(z3,
                    split = "\t")
+    
+    ######
+    # all lines that are predicted features i.e. have the 9 sections
+    ######
+    
     TotalIndices <- sapply(z4,
                            function(x) ifelse(test = length(x) == 9L,
                                               yes = x[1],
                                               no = NA))
     TotalIndices <- unique(TotalIndices)[!is.na(unique(TotalIndices))]
+    
+    ######
+    # Collect an arbitrary index number
+    # starts
+    # stops
+    # strands
+    # and annotations
+    ######
+    
     Index <- sapply(z4,
                     function(x) ifelse(test = length(x) == 9L & x[3] == "CDS",
                                        yes = x[1],
@@ -83,6 +103,10 @@ NCBIGFFParser <- function(GFFAddress,
                       USE.NAMES = FALSE,
                       simplify = TRUE)
     
+    ######
+    # keep only those that have starts, stops, strands and annotations
+    ######
+    
     z5 <- as.integer(Start[which(!is.na(Start) &
                                    !is.na(Stop) &
                                    !is.na(Strand) &
@@ -105,6 +129,17 @@ NCBIGFFParser <- function(GFFAddress,
                                  "Strand" = z7,
                                  "Annotation" = z8,
                                  stringsAsFactors = FALSE)
+    
+    ######
+    # Check on the starts, make sure they are ordered.
+    ######
+    
+    o <- order(GeneCalls[[i]]$Index,
+               GeneCalls[[i]]$Start,
+               decreasing = FALSE)
+    
+    rownames(GeneCalls[[i]]) <- NULL
+    GeneCalls[[i]] <- GeneCalls[[i]][o, ]
     if (Verbose == TRUE) {
       setTxtProgressBar(pb = pBar,
                         value = i/length(GFFAddress))

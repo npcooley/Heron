@@ -324,7 +324,6 @@ NucleotideOverlap <- function(SyntenyObject,
             QueryMatrix <- Ext.Check(CurrentMatrix = QueryMatrix,
                                      PositionCounter = AddCounter,
                                      AdditionalCols = ExtraCols)
-            AddCounter <- AddCounter + 1L
             break
           } else if (Q.HitStarts[HitCounter] > Q.Stop[z1] &
                      QHI[HitCounter] == Q.Index[z1]) {
@@ -395,7 +394,7 @@ NucleotideOverlap <- function(SyntenyObject,
         QueryMap <- QueryMatrix[, "CurrentGene"]
         S.HitStarts <- QueryMatrix[, "SubjectNucleotidePositionLeft"]
         S.HitEnds <- QueryMatrix[, "SubjectNucleotidePositionRight"]
-        Q.HitSarts <- QueryMatrix[, "QueryNucleotideOverLapLeft"]
+        Q.HitStarts <- QueryMatrix[, "QueryNucleotideOverLapLeft"]
         Q.HitEnds <- QueryMatrix[, "QueryNucleotideOverLapRight"]
         QueryIndices <- QueryMatrix[, "QueryIndex"]
         SubjectHitIndex <- QueryMatrix[, "SubjectIndex"]
@@ -421,7 +420,7 @@ NucleotideOverlap <- function(SyntenyObject,
               ExactOverLap <- S.HitEnds[HitCounter] - S.Start[z2] + 1L
               SubjectHitLeft <- S.HitStarts[HitCounter] + TrimLeft
               SubjectHitRight <- S.HitEnds[HitCounter]
-              QueryHitLeft <- Q.HitSarts[HitCounter] + TrimLeft
+              QueryHitLeft <- Q.HitStarts[HitCounter] + TrimLeft
               QueryHitRight <- Q.HitEnds[HitCounter]
               # Add to vector !
               OverLapMatrix[, AddCounter] <- c(QueryGenePosition,
@@ -449,7 +448,7 @@ NucleotideOverlap <- function(SyntenyObject,
               CurrentSubjectIndex <- SubjectHitIndex[HitCounter]
               SubjectHitLeft <- S.HitStarts[HitCounter]
               SubjectHitRight <- S.HitEnds[HitCounter]
-              QueryHitLeft <- Q.HitSarts[HitCounter]
+              QueryHitLeft <- Q.HitStarts[HitCounter]
               QueryHitRight <- Q.HitEnds[HitCounter]
               # Add to vector !
               OverLapMatrix[, AddCounter] <- c(QueryGenePosition,
@@ -480,7 +479,7 @@ NucleotideOverlap <- function(SyntenyObject,
               TrimRight <- S.HitEnds[HitCounter] - S.Stop[z2]
               SubjectHitLeft <- S.HitStarts[HitCounter]
               SubjectHitRight <- S.HitEnds[HitCounter] - TrimRight
-              QueryHitLeft <- Q.HitSarts[HitCounter]
+              QueryHitLeft <- Q.HitStarts[HitCounter]
               QueryHitRight <- Q.HitEnds[HitCounter] - TrimRight
               # Add to vector !
               OverLapMatrix[, AddCounter] <- c(QueryGenePosition,
@@ -510,7 +509,7 @@ NucleotideOverlap <- function(SyntenyObject,
               TrimRight <- S.HitEnds[HitCounter] - S.Stop[z2]
               SubjectHitLeft <- S.HitStarts[HitCounter] + TrimLeft
               SubjectHitRight <- S.HitEnds[HitCounter] - TrimRight
-              QueryHitLeft <- Q.HitSarts[HitCounter] + TrimLeft
+              QueryHitLeft <- Q.HitStarts[HitCounter] + TrimLeft
               QueryHitRight <- Q.HitEnds[HitCounter] - TrimRight
               # Add to vector !
               OverLapMatrix[, AddCounter] <- c(QueryGenePosition,
@@ -525,7 +524,6 @@ NucleotideOverlap <- function(SyntenyObject,
               OverLapMatrix <- Ext.Check(CurrentMatrix = OverLapMatrix,
                                          PositionCounter = AddCounter,
                                          AdditionalCols = ExtraCols)
-              AddCounter <- AddCounter + 1L
               break
             } else if (S.HitStarts[HitCounter] > S.Stop[z2]) {
               # Hit occurs after current subject gene
