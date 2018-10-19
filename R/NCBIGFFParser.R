@@ -46,6 +46,8 @@ NCBIGFFParser <- function(GFFAddress,
     z3 <- readLines(z2)
     z4 <- strsplit(z3,
                    split = "\t")
+    close(z1)
+    close(z2)
     
     ######
     # all lines that are predicted features i.e. have the 9 sections
