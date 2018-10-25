@@ -51,6 +51,7 @@ NCBIGFFParser <- function(GFFAddress,
     
     ######
     # all lines that are predicted features i.e. have the 9 sections
+    # collect the names, and sizes of given sequences
     ######
     
     TotalIndices <- sapply(z4,
@@ -58,6 +59,24 @@ NCBIGFFParser <- function(GFFAddress,
                                               yes = x[1],
                                               no = NA))
     TotalIndices <- unique(TotalIndices)[!is.na(unique(TotalIndices))]
+    
+    z9 <- z3[grep("sequence-region",
+                  z3,
+                  fixed = TRUE)]
+    
+    z10 <- strsplit(z9,
+                    " ",
+                    fixed = TRUE)
+    
+    SeqRegions <- sapply(z10,
+                         function(x) x[2],
+                         USE.NAMES = FALSE,
+                         simplify = TRUE)
+    
+    SeqMaxes <- sapply(z10,
+                       function(x) as.integer(x[4]),
+                       USE.NAMES = FALSE,
+                       simplify = TRUE)
     
     ######
     # Collect an arbitrary index number
@@ -96,12 +115,13 @@ NCBIGFFParser <- function(GFFAddress,
                       USE.NAMES = FALSE)
     Product <- str_extract(Product,
                            "(?<=product=)(.*)(?=;protein_id)")
+    
     Index <- Index[which(!is.na(Start) &
                            !is.na(Stop) &
                            !is.na(Strand) &
                            !is.na(Product))]
     Indices <- sapply(Index,
-                      function(x) which(TotalIndices == x),
+                      function(x) which(SeqRegions == x),
                       USE.NAMES = FALSE,
                       simplify = TRUE)
     
@@ -131,6 +151,20 @@ NCBIGFFParser <- function(GFFAddress,
                                  "Strand" = z7,
                                  "Annotation" = z8,
                                  stringsAsFactors = FALSE)
+    RangeTest <- vector("logical",
+                        length = length(z8))
+    for (k in seq_along(RangeTest)) {
+      if (z6[k] < SeqMaxes[SeqRegions %in% Index[k]]) {
+        RangeTest[k] <- TRUE
+      }
+    }
+    
+    GeneCalls[[i]] <- GeneCalls[[i]][RangeTest, ]
+    #RangeTest <- mapply(function(x, y) ifelse(test = x < SeqMaxes[y %in% SeqRegions],
+    #                                          yes = TRUE,
+    #                                          no = FALSE),
+    #                    x = Stop,
+    #                    y = Index)
     
     ######
     # Check on the starts, make sure they are ordered.

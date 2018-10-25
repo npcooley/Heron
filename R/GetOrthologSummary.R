@@ -14,8 +14,6 @@ GetOrthologSummary <- function(OrthologsObject,
                                GeneCalls,
                                DBPath,
                                SimilarityScores = FALSE,
-                               RemoveConflicts = FALSE,
-                               RemoveBy = "Coverage",
                                Verbose = FALSE) {
   if (Verbose) {
     TimeStart <- Sys.time()
@@ -40,10 +38,6 @@ GetOrthologSummary <- function(OrthologsObject,
     stop ("Object is not an Orthologs object.")
   }
   
-  if (RemoveBy == "Similarity" & !SimilarityScores) {
-    stop ("To remove conflicts by Similarity Scores, Similarity Scores must be calculated.")
-  }
-  
   if (SimilarityScores) {
     Genomes <- vector("list",
                         length = length(GeneCalls))
@@ -63,6 +57,8 @@ GetOrthologSummary <- function(OrthologsObject,
                      length = Total)
   PairMatrix <- vector("list",
                        length = Total)
+  IndexMatrix <- vector("list",
+                        length = Total)
   QueryGeneLength <- vector("list",
                             length = Total)
   SubjectGeneLength <- vector("list",
@@ -81,8 +77,12 @@ GetOrthologSummary <- function(OrthologsObject,
                           length = Total)
   Scores <- vector("list",
                    length = Total)
-  PairsCharacter <- vector("list",
+  QueryCharacter <- vector("list",
                            length = Total)
+  SubjectCharacter <- vector("list",
+                             length = Total)
+  LabelNames <- vector("list",
+                       length = Total)
   Count <- 1L
   for (m1 in seq_len(Size - 1L)) {
     for (m2 in (m1 + 1L):Size) {
@@ -105,26 +105,39 @@ GetOrthologSummary <- function(OrthologsObject,
       AbsStartDelta[[Count]] <- abs(OrthologsObject[m2, m1][[1]][, "QueryStartDisplacement"] - OrthologsObject[m2, m1][[1]][, "SubjectStartDisplacement"])
       AbsStopDelta[[Count]] <- abs(OrthologsObject[m2, m1][[1]][, "QueryStopDisplacement"] - OrthologsObject[m2, m1][[1]][, "SubjectStopDisplacement"])
       PairMatrix[[Count]] <- cbind(OrthologsObject[m1, m2][[1]][, "QueryGene"],
-                               OrthologsObject[m1, m2][[1]][, "SubjectGene"])
-      Coverage[[Count]] <- OrthologsObject[m1, m2][[1]][, "Coverage"]
+                                   OrthologsObject[m1, m2][[1]][, "SubjectGene"])
+      IndexMatrix[[Count]] <- cbind(OrthologsObject[m1, m2][[1]][, "QueryIndex"],
+                                    OrthologsObject[m1, m2][[1]][, "SubjectIndex"])
       QueryGeneLength[[Count]] <- GeneCalls[[m1]][PairMatrix[[Count]][, 1L], "Stop"] - GeneCalls[[m1]][PairMatrix[[Count]][, 1L], "Start"] + 1L
       SubjectGeneLength[[Count]] <- GeneCalls[[m2]][PairMatrix[[Count]][, 2L], "Stop"] - GeneCalls[[m2]][PairMatrix[[Count]][, 2L], "Start"] + 1L
       CombinedGeneLength[[Count]] <- QueryGeneLength[[Count]] + SubjectGeneLength[[Count]]
       NormGeneDiff[[Count]] <- abs(QueryGeneLength[[Count]] - SubjectGeneLength[[Count]]) / CombinedGeneLength[[Count]]
       NormDeltaStart[[Count]] <- AbsStartDelta[[Count]] / CombinedGeneLength[[Count]]
       NormDeltaStop[[Count]] <- AbsStopDelta[[Count]] / CombinedGeneLength[[Count]]
-      PairsCharacter[[Count]] <- vector("character",
+      Coverage[[Count]] <- (OrthologsObject[m1, m2][[1]][, "ExactOverlap"] * 2L) / CombinedGeneLength[[Count]]
+      QueryCharacter[[Count]] <- vector("character",
                                         length = nrow(OrthologsObject[m1, m2][[1]]))
+      SubjectCharacter[[Count]] <- vector("character",
+                                          length = nrow(OrthologsObject[m1, m2][[1]]))
+      LabelNames[[Count]] <- vector("character",
+                                    length = nrow(OrthologsObject[m1, m2][[1]]))
       if (SimilarityScores) {
         Scores[[Count]] <- vector("list",
                                   length = nrow(OrthologsObject[m1, m2][[1]]))
       }
       
       for (i in seq_len(nrow(OrthologsObject[m1, m2][[1]]))) {
-        PairsCharacter[[Count]][i] <- paste(c(m1, m2),
-                                            PairMatrix[[Count]][i, ],
-                                            sep = "_",
-                                            collapse = " ")
+        QueryCharacter[[Count]][i] <- paste(m1,
+                                            IndexMatrix[[Count]][i, 1L],
+                                            PairMatrix[[Count]][i, 1L],
+                                            sep = "_")
+        SubjectCharacter[[Count]][i] <- paste(m2,
+                                              IndexMatrix[[Count]][i, 2L],
+                                              PairMatrix[[Count]][i, 2L],
+                                              sep = "_")
+        LabelNames[[Count]][i] <- paste(QueryCharacter[[Count]][i],
+                                        SubjectCharacter[[Count]][i],
+                                        sep = " ")
         if (SimilarityScores) {
           Scores[[Count]][[i]] <- unlist(extractAt(x = c(Genomes[[m1]][OrthologsObject[m1, m2][[1]][i, "QueryIndex"]],
                                                          Genomes[[m2]][OrthologsObject[m1, m2][[1]][i, "SubjectIndex"]]),
@@ -149,72 +162,6 @@ GetOrthologSummary <- function(OrthologsObject,
       } # end similarity scores loop
       
       ######
-      # remove conflicts
-      # find indices that are reused, and remove the index with the weaker metric
-      # lower score or coverage, higher gene diff, or higher delta start/stop
-      ######
-      
-      if (RemoveConflicts) {
-        conflicts1 <- which(duplicated(PairMatrix[[Count]][, 1L]))
-        conflicts2 <- which(duplicated(PairMatrix[[Count]][, 2L]))
-        
-        if (length(conflicts1) > 0L) {
-          remove1 <- vector("integer",
-                            length = length(conflicts1))
-          for (i in seq_along(conflicts1)) {
-            CurrentPair <- which(PairMatrix[[Count]][, 1L] == PairMatrix[[Count]][conflicts1[i], 1L])
-            if (RemoveBy == "Coverage") {
-              remove1[i] <- CurrentPair[which.min(Coverage[[Count]][CurrentPair])]
-            } else if (RemoveBy == "Similarity") {
-              remove1[i] <- CurrentPair[which.min(Scores[[Count]][CurrentPair])]
-            } else if (RemoveBy == "NormDeltaStart") {
-              remove1[i] <- CurrentPair[which.max(NormDeltaStart[[Count]][CurrentPair])]
-            } else if (RemoveBy == "NormDeltaStop") {
-              remove1[i] <- CurrentPair[which.max(NormDeltaStop[[Count]][CurrentPair])]
-            } else if (RemoveBy == "NormGeneDiff") {
-              remove1[i] <- CurrentPair[which.max(NormGeneDiff[[Count]][CurrentPair])]
-            }
-          } # loop through number of conflicts in the query indices
-        }
-        if (length(conflicts2) > 0L) {
-          remove2 <- vector("integer",
-                            length = length(conflicts2))
-          for (i in seq_along(conflicts2)) {
-            CurrentPair <- which(PairMatrix[[Count]][, 2L] == PairMatrix[[Count]][conflicts2[i], 2L])
-            if (RemoveBy == "Coverage") {
-              remove2[i] <- CurrentPair[which.min(Coverage[[Count]][CurrentPair])]
-            } else if (RemoveBy == "Similarity") {
-              remove2[i] <- CurrentPair[which.min(Scores[[Count]][CurrentPair])]
-            } else if (RemoveBy == "NormDeltaStart") {
-              remove2[i] <- CurrentPair[which.max(NormDeltaStart[[Count]][CurrentPair])]
-            } else if (RemoveBy == "NormDeltaStop") {
-              remove2[i] <- CurrentPair[which.max(NormDeltaStop[[Count]][CurrentPair])]
-            } else if (RemoveBy == "NormGeneDiff") {
-              remove2[i] <- CurrentPair[which.max(NormGeneDiff[[Count]][CurrentPair])]
-            }
-          } # loop through the number of conflicts in the subject indices
-        }
-        if (length(conflicts1) > 0L & length(conflicts2) > 0L) {
-          TotalRemove <- sort(unique(c(remove1,
-                                       remove2)))
-        } else if (length(conflicts1) > 0L & length(conflicts2) == 0L) {
-          TotalRemove <- sort(unique(remove1))
-        } else if (length(conflicts2) > 0L & length(conflicts1) == 0L) {
-          TotalRemove <- sort(unique(remove2))
-        }
-        if (!any(is.na(TotalRemove))) {
-          PairsCharacter[[Count]] <- PairsCharacter[[Count]][-TotalRemove]
-          Coverage[[Count]] <- Coverage[[Count]][-TotalRemove]
-          NormDeltaStart[[Count]] <- NormDeltaStart[[Count]][-TotalRemove]
-          NormDeltaStop[[Count]] <- NormDeltaStop[[Count]][-TotalRemove]
-          NormGeneDiff[[Count]] <- NormGeneDiff[[Count]][-TotalRemove]
-          Scores[[Count]] <- Scores[[Count]][-TotalRemove]
-        } else {
-          print("Problem encountered in conflict resolution, no conflicts resolved.")
-        }
-      } # end of removal conditional
-      
-      ######
       # Go to next matrix position,
       # Assign next list position
       ######
@@ -227,20 +174,20 @@ GetOrthologSummary <- function(OrthologsObject,
     } # end of columns loop
   } # end of rows loop
   if (SimilarityScores) {
-    DF <- data.frame("Labels" = unlist(PairsCharacter),
-                     "Coverage" = unlist(Coverage),
+    DF <- data.frame("Coverage" = unlist(Coverage),
                      "NormDeltaStart" = unlist(NormDeltaStart),
                      "NormDeltaStop" = unlist(NormDeltaStop),
                      "NormGeneDiff" = unlist(NormGeneDiff),
                      "Similarity" = unlist(Scores),
                      stringsAsFactors = FALSE)
+    rownames(DF) <- unlist(LabelNames)
   } else {
-    DF <- data.frame("Labels" = unlist(PairsCharacter),
-                     "Coverage" = unlist(Coverage),
+    DF <- data.frame("Coverage" = unlist(Coverage),
                      "NormDeltaStart" = unlist(NormDeltaStart),
                      "NormDeltaStop" = unlist(NormDeltaStop),
                      "NormGeneDiff" = unlist(NormGeneDiff),
                      stringsAsFactors = FALSE)
+    rownames(DF) <- unlist(LabelNames)
   }
   
   if (Verbose) {
