@@ -8,5 +8,6 @@ export(NCBIGFFParser)
 export(NucleotideOverlap)
 export(ReadMCL)
 export(SubCatalog)
+export(ResolveConflicts)
 
 S3method(print, "Orthologs")
