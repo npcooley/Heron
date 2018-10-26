@@ -64,6 +64,7 @@ ResolveConflicts <- function(SummaryObject,
     # for each duplicated index, collect the labels that conflict
     # perform for both query and subject labels that are duplicates
     ######
+    
     for (j in seq_len(nrow(QDuplicates))) {
       CurrentPair <- SubLabels[which(apply(SubLabels,
                                            MARGIN = 1L,
@@ -73,14 +74,15 @@ ResolveConflicts <- function(SummaryObject,
         
         ######
         # if the current conflicting labels all occur on the same index
+        # this list is further nested for expansion purposes later
         ######
         
-        DuplicatedQueries[[i]][[j]] <- apply(CurrentPair,
-                                             MARGIN = 1L,
-                                             function(x) paste(x,
-                                                               c("_", "_", " ", "_", "_", ""),
-                                                               sep = "",
-                                                               collapse = ""))
+        DuplicatedQueries[[i]][[j]] <- list(apply(CurrentPair,
+                                                  MARGIN = 1L,
+                                                  function(x) paste(x,
+                                                                    c("_", "_", " ", "_", "_", ""),
+                                                                    sep = "",
+                                                                    collapse = "")))
       } else if (!(diff(range(CurrentPair[, 5L])) < .Machine$double.eps ^ 0.5) &
                  length(CurrentPair[, 5L]) > 2L) {
         
@@ -107,13 +109,20 @@ ResolveConflicts <- function(SummaryObject,
         ######
         
         if (length(ResolveMultiIndex) > 0L) {
+          
+          ######
+          # This list is further nested to keep all possible outcomes of ResolveMultiIndex
+          ######
+          
+          DuplicatedQueries[[i]][[j]] <- vector("list",
+                                                length = length(ResolveMultiIndex))
           for (k in seq_along(ResolveMultiIndex)) {
-            DuplicatedQueries[[i]][[j]] <- apply(CurrentPair[ResolveMultiIndex[[k]], ],
-                                                 MARGIN = 1L,
-                                                 function(x) paste(x,
-                                                                   c("_", "_", " ", "_", "_", ""),
-                                                                   sep = "",
-                                                                   collapse = ""))
+            DuplicatedQueries[[i]][[j]][[k]] <- apply(CurrentPair[ResolveMultiIndex[[k]], ],
+                                                      MARGIN = 1L,
+                                                      function(x) paste(x,
+                                                                        c("_", "_", " ", "_", "_", ""),
+                                                                        sep = "",
+                                                                        collapse = ""))
           }
         } # end of resolve multi index conditional
       } # end of CurrentPair conditional
@@ -128,12 +137,12 @@ ResolveConflicts <- function(SummaryObject,
                                            MARGIN = 1L,
                                            function(x) identical(x[4:6], SDuplicates[j, ]))), ]
       if (diff(range(CurrentPair[, 2L])) < .Machine$double.eps ^ 0.5) {
-        DuplicatedSubjects[[i]][[j]] <- apply(CurrentPair,
-                                              MARGIN = 1L,
-                                              function(x) paste(x,
-                                                                c("_", "_", " ", "_", "_", ""),
-                                                                sep = "",
-                                                                collapse = ""))
+        DuplicatedSubjects[[i]][[j]] <- list(apply(CurrentPair,
+                                                   MARGIN = 1L,
+                                                   function(x) paste(x,
+                                                                     c("_", "_", " ", "_", "_", ""),
+                                                                     sep = "",
+                                                                     collapse = "")))
       } else if (!(diff(range(CurrentPair[, 2L])) < .Machine$double.eps ^ 0.5) &
                  length(CurrentPair[, 2L]) > 2L) {
         
@@ -155,18 +164,27 @@ ResolveConflicts <- function(SummaryObject,
         ResolveMultiIndex <- unique(ResolveMultiIndex)
         ResolveMultiIndex <- ResolveMultiIndex[which(lengths(ResolveMultiIndex) > 1L)]
         
+        
         ######
         # If labels remain
         ######
         
         if (length(ResolveMultiIndex) > 0L) {
+          
+          ######
+          # This list is further nested to keep all possible outcomes of ResolveMultiIndex
+          ######
+          
+          DuplicatedSubjects[[i]][[j]] <- vector("list",
+                                                 length = length(ResolveMultiIndex))
+          
           for (k in seq_along(ResolveMultiIndex)) {
-            DuplicatedSubjects[[i]][[j]] <- apply(CurrentPair[ResolveMultiIndex[[k]], ],
-                                                  MARGIN = 1L,
-                                                  function(x) paste(x,
-                                                                    c("_", "_", " ", "_", "_", ""),
-                                                                    sep = "",
-                                                                    collapse = ""))
+            DuplicatedSubjects[[i]][[j]][[k]] <- apply(CurrentPair[ResolveMultiIndex[[k]], ],
+                                                       MARGIN = 1L,
+                                                       function(x) paste(x,
+                                                                         c("_", "_", " ", "_", "_", ""),
+                                                                         sep = "",
+                                                                         collapse = ""))
           }
         } # end of resolve multi index conditional
       } # end of CurrentPair conditional
@@ -184,83 +202,113 @@ ResolveConflicts <- function(SummaryObject,
   
   AllRemovals <- c(DuplicatedQueries,
                    DuplicatedSubjects)
+  
   AllRemovals <- unlist(AllRemovals,
                         recursive = FALSE)
-  AllRemovals <- AllRemovals[which(lengths(AllRemovals) > 0L)]
-  AllRemovals <- unique(AllRemovals)
   
-  if (Verbose) {
-    TimeStop <- Sys.time()
-    cat("\n")
-    print("Removal Labels Collected")
-    print(TimeStop - TimeStart)
-    cat("\n")
+  print(head(AllRemovals))
+  
+  AllRemovals <- unlist(AllRemovals,
+                        recursive = FALSE)
+  
+  print(head(AllRemovals))
+  
+  if (length(which(lengths(AllRemovals) > 0)) > 0) {
+    
+    ######
+    # if there are labels to remove
+    # loop through the AllRemovals list
+    # which is a list of conflicting labels
+    # these labels are character vectors
+    ######
+    
+    AllRemovals <- AllRemovals[which(lengths(AllRemovals) > 0L)]
+    AllRemovals <- unique(AllRemovals)
+    
+    if (Verbose) {
+      TimeStop <- Sys.time()
+      cat("\n")
+      print("Removal Labels Collected")
+      print(TimeStop - TimeStart)
+      cat("\n")
+    }
+    
+    RemovePositions <- vector("list",
+                              length = length(AllRemovals))
+    
+    if (ResolveBy == "Coverage" |
+        ResolveBy == "Similarity") {
+      
+      ######
+      # for these positions, keep the maximum position
+      ######
+      
+      for (i in seq_along(AllRemovals)) {
+        
+        CurrentSubSet <- SummaryObject[rownames(SummaryObject) %in% AllRemovals[[i]], ]
+        SubSetPositions <- which(rownames(SummaryObject) %in% AllRemovals[[i]])
+        
+        TargetPositions <- CurrentSubSet[, ResolveBy]
+        KeepPosition <- which.max(TargetPositions)
+        RemovePositions[[i]] <- SubSetPositions[-KeepPosition]
+        
+        if (Verbose) {
+          setTxtProgressBar(pb = pBar,
+                            value = i / length(AllRemovals))
+        }
+      } # end of removals loop
+    } else if (ResolveBy == "NormDeltaStart" |
+               ResolveBy == "NormDeltaStop" |
+               ResolveBy == "NormGeneDiff") {
+      
+      ######
+      # for these metrics, keep the minimum position
+      ######
+      
+      for (i in seq_along(AllRemovals)) {
+        
+        CurrentSubSet <- SummaryObject[rownames(SummaryObject) %in% AllRemovals[[i]], ]
+        SubSetPositions <- which(rownames(SummaryObject) %in% AllRemovals[[i]])
+        
+        TargetPositions <- CurrentSubSet[, ResolveBy]
+        KeepPosition <- which.min(TargetPositions)
+        RemovePositions[[i]] <- SubSetPositions[-KeepPosition]
+        
+        if (Verbose) {
+          setTxtProgressBar(pb = pBar,
+                            value = i / length(AllRemovals))
+        }
+      } # end of removals loop
+    } # end of ResolveBy conditional
+    
+    SubSetSummary <- SummaryObject[-(unique(unlist(RemovePositions))), ]
+    
+    if (Verbose) {
+      TimeStop <- Sys.time()
+      cat("\n")
+      print("Labels Removed")
+      print(TimeStop - TimeStart)
+      cat("\n")
+    }
+    
+    return(SubSetSummary)
+    
+  } else {
+    
+    ######
+    # if no indices to remove
+    ######
+    
+    if (Verbose) {
+      TimeStop <- Sys.time()
+      cat("\n")
+      print(TimeStop - TimeStart)
+      print("No Conflicts Present")
+    }
+    
+    return(SummaryObject)
   }
   
-  ######
-  # loop through the AllRemovals list
-  # which is a list of conflicting labels
-  # these labels are character vectors
-  ######
-  
-  RemovePositions <- vector("list",
-                            length = length(AllRemovals))
-  
-  if (ResolveBy == "Coverage" |
-      ResolveBy == "Similarity") {
-    
-    ######
-    # for these positions, keep the maximum position
-    ######
-    
-    for (i in seq_along(AllRemovals)) {
-      
-      CurrentSubSet <- SummaryObject[rownames(SummaryObject) %in% AllRemovals[[i]], ]
-      SubSetPositions <- which(rownames(SummaryObject) %in% AllRemovals[[i]])
-      
-      TargetPositions <- CurrentSubSet[, ResolveBy]
-      KeepPosition <- which.max(TargetPositions)
-      RemovePositions[[i]] <- SubSetPositions[-KeepPosition]
-      
-      if (Verbose) {
-        setTxtProgressBar(pb = pBar,
-                          value = i / length(AllRemovals))
-      }
-    } # end of removals loop
-  } else if (ResolveBy == "NormDeltaStart" |
-             ResolveBy == "NormDeltaStop" |
-             ResolveBy == "NormGeneDiff") {
-    
-    ######
-    # for these metrics, keep the minimum position
-    ######
-    
-    for (i in seq_along(AllRemovals)) {
-      
-      CurrentSubSet <- SummaryObject[rownames(SummaryObject) %in% AllRemovals[[i]], ]
-      SubSetPositions <- which(rownames(SummaryObject) %in% AllRemovals[[i]])
-      
-      TargetPositions <- CurrentSubSet[, ResolveBy]
-      KeepPosition <- which.min(TargetPositions)
-      RemovePositions[[i]] <- SubSetPositions[-KeepPosition]
-      
-      if (Verbose) {
-        setTxtProgressBar(pb = pBar,
-                          value = i / length(AllRemovals))
-      }
-    } # end of removals loop
-  } # end of ResolveBy conditional
-  
-  SubSetSummary <- SummaryObject[-unique(unlist(RemovePositions)), ]
-  
-  if (Verbose) {
-    TimeStop <- Sys.time()
-    cat("\n")
-    print("Labels Removed")
-    print(TimeStop - TimeStart)
-    cat("\n")
-  }
-  return(SubSetSummary)
 }
 
 
