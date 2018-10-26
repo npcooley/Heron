@@ -206,12 +206,8 @@ ResolveConflicts <- function(SummaryObject,
   AllRemovals <- unlist(AllRemovals,
                         recursive = FALSE)
   
-  print(head(AllRemovals))
-  
   AllRemovals <- unlist(AllRemovals,
                         recursive = FALSE)
-  
-  print(head(AllRemovals))
   
   if (length(which(lengths(AllRemovals) > 0)) > 0) {
     
