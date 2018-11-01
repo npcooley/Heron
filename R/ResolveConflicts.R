@@ -5,9 +5,9 @@
 #' @examples
 #' ResolveConflicts()
 
-ResolveConflicts <- function(SummaryObject,
-                             ResolveBy = "Coverage",
-                             Verbose = FALSE) {
+ResolveTesting <- function(SummaryObject,
+                           ResolveBy = "Coverage",
+                           Verbose = FALSE) {
   
   if (Verbose) {
     TimeStart <- Sys.time()
@@ -50,8 +50,8 @@ ResolveConflicts <- function(SummaryObject,
   for (i in seq_len(nrow(SummarizedPairs))) {
     SubLabels <- LabelMatrix[which(LabelMatrix[, 1L] == SummarizedPairs[i, 1L] &
                                      LabelMatrix[, 4L] == SummarizedPairs[i, 2L]), ]
-    QDuplicates <- SubLabels[duplicated(SubLabels[, 1:3]), 1:3]
-    SDuplicates <- SubLabels[duplicated(SubLabels[, 4:6]), 4:6]
+    QDuplicates <- SubLabels[duplicated(SubLabels[, 1:3]), 1:3, drop = FALSE]
+    SDuplicates <- SubLabels[duplicated(SubLabels[, 4:6]), 4:6, drop = FALSE]
     QDuplicates <- unique(QDuplicates)
     SDuplicates <- unique(SDuplicates)
     
