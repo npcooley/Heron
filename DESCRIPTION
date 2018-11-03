@@ -1,6 +1,6 @@
 Package: Heron
 Title: A Package of Various Tools
-Version: 0.0.0.9009
+Version: 0.0.0.9010
 Authors@R: person("Nicholas", "Cooley", email = "npc19@pitt.edu", role = c("aut", "cre"))
 Description: Heron is a package of tools for comparative genomics.
 Depends: R (>= 3.5.0)

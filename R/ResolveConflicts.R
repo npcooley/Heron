@@ -5,9 +5,9 @@
 #' @examples
 #' ResolveConflicts()
 
-ResolveTesting <- function(SummaryObject,
-                           ResolveBy = "Coverage",
-                           Verbose = FALSE) {
+ResolveConflicts <- function(SummaryObject,
+                             ResolveBy = "Coverage",
+                             Verbose = FALSE) {
   
   if (Verbose) {
     TimeStart <- Sys.time()
