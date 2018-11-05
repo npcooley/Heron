@@ -189,6 +189,7 @@ NucleotideOverlap <- function(SyntenyObject,
               QHI[HitCounter] == Q.Index[z1]) {
             # Hit ends before current query gene begins
             # AND the indices are the same
+            # record the hit counter every time you iterate to the next hit
             HitCounter <- HitCounter + 1L
           } else if (Q.HitStarts[HitCounter] < Q.Start[z1] &
                      Q.HitEnds[HitCounter] >= Q.Start[z1] &
@@ -227,7 +228,9 @@ NucleotideOverlap <- function(SyntenyObject,
             QueryMatrix <- Ext.Check(CurrentMatrix = QueryMatrix,
                                      PositionCounter = AddCounter,
                                      AdditionalCols = ExtraCols)
+            # record the add counter every time a new row is added to the query matrix
             AddCounter <- AddCounter + 1L
+            # record the hit counter every time you iterate to the next hit
             HitCounter <- HitCounter + 1L
           } else if (Q.HitStarts[HitCounter] >= Q.Start[z1] &
                      Q.HitEnds[HitCounter] <= Q.Stop[z1] &
@@ -255,7 +258,9 @@ NucleotideOverlap <- function(SyntenyObject,
             QueryMatrix <- Ext.Check(CurrentMatrix = QueryMatrix,
                                      PositionCounter = AddCounter,
                                      AdditionalCols = ExtraCols)
+            # record the add counter every time a new row is added to the query matrix
             AddCounter <- AddCounter + 1L
+            # record the hit counter every time you iterate to the next hit
             HitCounter <- HitCounter + 1L
           } else if (Q.HitStarts[HitCounter] >= Q.Start[z1] &
                      Q.HitStarts[HitCounter] <= Q.Stop[z1] &
@@ -289,6 +294,7 @@ NucleotideOverlap <- function(SyntenyObject,
             QueryMatrix <- Ext.Check(CurrentMatrix = QueryMatrix,
                                      PositionCounter = AddCounter,
                                      AdditionalCols = ExtraCols)
+            # record the add counter every time a new row is added to the query matrix
             AddCounter <- AddCounter + 1L
             break
           } else if (Q.HitStarts[HitCounter] < Q.Start[z1] &
@@ -324,6 +330,8 @@ NucleotideOverlap <- function(SyntenyObject,
             QueryMatrix <- Ext.Check(CurrentMatrix = QueryMatrix,
                                      PositionCounter = AddCounter,
                                      AdditionalCols = ExtraCols)
+            # record the add counter every time a new row is added to the query matrix
+            AddCounter <- AddCounter + 1L
             break
           } else if (Q.HitStarts[HitCounter] > Q.Stop[z1] &
                      QHI[HitCounter] == Q.Index[z1]) {
@@ -336,6 +344,7 @@ NucleotideOverlap <- function(SyntenyObject,
             break
           } else if (QHI[HitCounter] < Q.Index[z1]) {
             # If the index of the genes has outpaced the index of the hits
+            # record the hit counter every time you iterate to the next hit
             HitCounter <- HitCounter + 1L
           } # end of else if conditionals
         } # end while loop through hits
@@ -388,7 +397,6 @@ NucleotideOverlap <- function(SyntenyObject,
         # Part 2!
         # Hits that were recorded as being within a gene in the query
         # are now tested again the genes in the subject
-        # 
         ######
         ExtraCols <- OverLapMatrix
         QueryMap <- QueryMatrix[, "CurrentGene"]
@@ -524,6 +532,7 @@ NucleotideOverlap <- function(SyntenyObject,
               OverLapMatrix <- Ext.Check(CurrentMatrix = OverLapMatrix,
                                          PositionCounter = AddCounter,
                                          AdditionalCols = ExtraCols)
+              AddCounter <- AddCounter + 1L
               break
             } else if (S.HitStarts[HitCounter] > S.Stop[z2]) {
               # Hit occurs after current subject gene
