@@ -5,6 +5,7 @@
 #' @param DBPath A character vector specifying a sqlite database built by DECIPHER
 #' @param Verbose Run with progress bar, return total upon completion.
 #' @param SimilarityScores A logical indicating whether to get the global alignment scores for all predicted orthologs
+#' @param Type provide alignment similarity scores in nucleotide or amino acid space. AAStringSet or DNAStringSet
 #' @keywords Orthology, Synteny, Gene Length, Alignment
 #' @export
 #' @examples
@@ -14,6 +15,7 @@ GetOrthologSummary <- function(OrthologsObject,
                                GeneCalls,
                                DBPath,
                                SimilarityScores = FALSE,
+                               Type = "DNAStringSet",
                                Verbose = FALSE) {
   if (Verbose) {
     TimeStart <- Sys.time()
@@ -155,7 +157,8 @@ GetOrthologSummary <- function(OrthologsObject,
                                                                                      sense = "+",
                                                                                      direction = "5' to 3'",
                                                                                      readingFrame = 1L,
-                                                                                     verbose = FALSE),
+                                                                                     verbose = FALSE,
+                                                                                     type = Type),
                                                      includeTerminalGaps = TRUE,
                                                      verbose = FALSE)[1, 2]
         } # end similarity scores conditional

@@ -560,7 +560,6 @@ NucleotideOverlap <- function(SyntenyObject,
                                            OverLapMatrix[, 2L, drop = FALSE]),
                                      ,
                                      drop = FALSE]
-      
       ######
       # If the overlap matrix is empty, assign an empty single row matrix
       # If it is not, sum up the overlap in nucleotide space and condense to a single row
@@ -569,11 +568,11 @@ NucleotideOverlap <- function(SyntenyObject,
       if (dim(OverLapMatrix)[1] == 0L) {
         OverLapMatrix <- matrix(NA_integer_,
                                 nrow = 1L,
-                                ncol = 5L)
+                                ncol = 9L)
         OutPutMatrix <- matrix(NA_integer_,
                                nrow = 1L,
-                               ncol = 5L)
-      } else if (dim(OverLapMatrix)[1] > 1L) {
+                               ncol = 9L)
+      } else if (dim(OverLapMatrix)[1] >= 1L) {
         OutPutMatrix <- matrix(NA_integer_,
                                ncol = 9L,
                                nrow = nrow(OverLapMatrix))
