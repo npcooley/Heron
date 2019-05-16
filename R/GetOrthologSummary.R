@@ -55,8 +55,12 @@ GetOrthologSummary <- function(OrthologsObject,
   Size <- dim(OrthologsObject)[1]
   Total <- (Size^2 - Size) / 2
   
-  Coverage <- vector("list",
-                     length = Total)
+  TotalCoverage <- vector("list",
+                          length = Total)
+  MinCoverage <- vector("list",
+                        length = Total)
+  MaxCoverage <- vector("list",
+                        length = Total)
   PairMatrix <- vector("list",
                        length = Total)
   IndexMatrix <- vector("list",
@@ -116,7 +120,15 @@ GetOrthologSummary <- function(OrthologsObject,
       NormGeneDiff[[Count]] <- abs(QueryGeneLength[[Count]] - SubjectGeneLength[[Count]]) / CombinedGeneLength[[Count]]
       NormDeltaStart[[Count]] <- AbsStartDelta[[Count]] / CombinedGeneLength[[Count]]
       NormDeltaStop[[Count]] <- AbsStopDelta[[Count]] / CombinedGeneLength[[Count]]
-      Coverage[[Count]] <- (OrthologsObject[m1, m2][[1]][, "ExactOverlap"] * 2L) / CombinedGeneLength[[Count]]
+      TotalCoverage[[Count]] <- (OrthologsObject[m1, m2][[1]][, "ExactOverlap"] * 2L) / CombinedGeneLength[[Count]]
+      MinCoverage[[Count]] <- OrthologsObject[m1, m2][[1]][, "ExactOverlap"] / apply(cbind(QueryGeneLength[[Count]],
+                                                                                           SubjectGeneLength[[Count]]),
+                                                                                     MARGIN = 1L,
+                                                                                     FUN = function(x) min(x))
+      MaxCoverage[[Count]] <- OrthologsObject[m1, m2][[1]][, "ExactOverlap"] / apply(cbind(QueryGeneLength[[Count]],
+                                                                                           SubjectGeneLength[[Count]]),
+                                                                                     MARGIN = 1L,
+                                                                                     FUN = function(x) max(x))
       QueryCharacter[[Count]] <- vector("character",
                                         length = nrow(OrthologsObject[m1, m2][[1]]))
       SubjectCharacter[[Count]] <- vector("character",
@@ -177,7 +189,9 @@ GetOrthologSummary <- function(OrthologsObject,
     } # end of columns loop
   } # end of rows loop
   if (SimilarityScores) {
-    DF <- data.frame("Coverage" = unlist(Coverage),
+    DF <- data.frame("TotalCoverage" = unlist(TotalCoverage),
+                     "MaxCoverage" = unlist(MaxCoverage),
+                     "MinCoverage" = unlist(MinCoverage),
                      "NormDeltaStart" = unlist(NormDeltaStart),
                      "NormDeltaStop" = unlist(NormDeltaStop),
                      "NormGeneDiff" = unlist(NormGeneDiff),
@@ -185,7 +199,9 @@ GetOrthologSummary <- function(OrthologsObject,
                      stringsAsFactors = FALSE)
     rownames(DF) <- unlist(LabelNames)
   } else {
-    DF <- data.frame("Coverage" = unlist(Coverage),
+    DF <- data.frame("TotalCoverage" = unlist(TotalCoverage),
+                     "MaxCoverage" = unlist(MaxCoverage),
+                     "MinCoverage" = unlist(MinCoverage),
                      "NormDeltaStart" = unlist(NormDeltaStart),
                      "NormDeltaStop" = unlist(NormDeltaStop),
                      "NormGeneDiff" = unlist(NormGeneDiff),

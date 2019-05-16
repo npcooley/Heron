@@ -6,7 +6,7 @@
 #' ResolveConflicts()
 
 ResolveConflicts <- function(SummaryObject,
-                             ResolveBy = "Coverage",
+                             ResolveBy = "TotalCoverage",
                              Verbose = FALSE) {
   
   if (Verbose) {
@@ -232,7 +232,9 @@ ResolveConflicts <- function(SummaryObject,
     RemovePositions <- vector("list",
                               length = length(AllRemovals))
     
-    if (ResolveBy == "Coverage" |
+    if (ResolveBy == "TotalCoverage" |
+        ResolveBy == "MaxCoverage" |
+        ResolveBy == "MinCoverage" |
         ResolveBy == "Similarity") {
       
       ######

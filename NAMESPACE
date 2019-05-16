@@ -9,5 +9,8 @@ export(NucleotideOverlap)
 export(ReadMCL)
 export(SubCatalog)
 export(ResolveConflicts)
+export(ReciprocalBestBlast)
+export(HSSPScore)
+export(SubGraphParsing)
 
 S3method(print, "Orthologs")

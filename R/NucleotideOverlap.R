@@ -4,12 +4,8 @@
 #' @param GeneCalls A list of dataframes, one for each genome in SyntenyObject, with named columns "Index", "Start", "Stop", "Strand", and an optional "Annotation" column.
 #' @param LimitIndex Use only the first index of all selected genomes, defaults to TRUE.
 #' @param OutputFormat "Comprehensive", "Normal", or "Sparse" for how much data to return.
-#' @param TotalCov Return coverage as a percentage of the smaller gene or both genes, defaults to TRUE.
-#' @param DefaultFilter Filter returned predictions based on the differences in gene length, gene starts, and gene stops.
-#' @param FilterOverlap Filter returned predictions based on number of exact nucleotides linking two genes, missing by default.
-#' @param FilterCoverage Filter returned predictions based on the percent coverage of the linking nucleotides, missing by default.
 #' @param Verbose Run with progress bar, return total upon completion.
-#' @keywords Orthology, Synteny
+#' @keywords Orthology Synteny
 #' @export
 #' @examples
 #' NucleotideOverlap()
@@ -18,11 +14,7 @@ NucleotideOverlap <- function(SyntenyObject,
                               GeneCalls,
                               LimitIndex = TRUE,
                               OutputFormat = "Normal",
-                              TotalCov = TRUE,
-                              Verbose = FALSE,
-                              DefaultFilter = FALSE,
-                              FilterOverlap,
-                              FilterCoverage) {
+                              Verbose = FALSE) {
   ######
   # Error Checking
   # Require names for synteny object, DECIPHER be loaded, object sizes, some index checking
@@ -576,6 +568,10 @@ NucleotideOverlap <- function(SyntenyObject,
         OutPutMatrix <- matrix(NA_integer_,
                                ncol = 9L,
                                nrow = nrow(OverLapMatrix))
+        ######
+        # All recordings so far are by hit
+        # condense hits as appropriate, by the genes that they link
+        ######
         RowCount <- 1L
         CondenseCount <- 1L
         while (CondenseCount <= nrow(OverLapMatrix)) {
@@ -606,39 +602,7 @@ NucleotideOverlap <- function(SyntenyObject,
                                                       drop = FALSE]),
                                    ,
                                    drop = FALSE]
-      ######
-      # Collect normalized overlap for either the smaller of the two genes
-      # or 2x the overlap for the combination of both genes
-      ######
-      Coverage <- vector("numeric",
-                                  length = nrow(OutPutMatrix))
-      ######
-      # If we ever want to use the total length of the two genes for anything...
-      ######
-      if (TotalCov) {
-        for (z6 in seq_along(Coverage)) {
-          TotalGeneLength <- sum(Q.Length[OutPutMatrix[z6, 1L]],
-                                 S.Length[OutPutMatrix[z6, 2L]])
-          Coverage[z6] <- (2 * OutPutMatrix[z6, 3L]) / TotalGeneLength
-        }
-      } else {
-        for (z6 in seq_along(Coverage)) {
-          SmallerGene <- min(Q.Length[OutPutMatrix[z6, 1L]],
-                             S.Length[OutPutMatrix[z6, 2L]])
-          Coverage[z6] <- OutPutMatrix[z6, 3L] / SmallerGene
-        }
-      }
-      #for (z6 in seq_along(Coverage)) {
-      #  SmallerGene <- min(Q.Length[OutPutMatrix[z6, 1L]],
-      #                     S.Length[OutPutMatrix[z6, 2L]])
-      #  Coverage[z6] <- OutPutMatrix[z6, 3L] / SmallerGene
-      #}
-      Coverage <- Coverage * 100
-      Coverage <- sapply(Coverage,
-                                  function(x) floor(x))
-      Coverage <- as.integer(Coverage)
-      OutPutMatrix <- cbind(OutPutMatrix,
-                           Coverage)
+      
       colnames(OutPutMatrix) <- c("QueryGene",
                                   "SubjectGene",
                                   "ExactOverlap",
@@ -647,8 +611,7 @@ NucleotideOverlap <- function(SyntenyObject,
                                   "QLeftPos",
                                   "QRightPos",
                                   "SLeftPos",
-                                  "SRightPos",
-                                  "Coverage")
+                                  "SRightPos")
       QueryStartDisplacement <- ifelse(test = QG.Strand[OutPutMatrix[, "QueryGene"]] == 1L,
                                        yes = abs(OutPutMatrix[, 7L] - Q.Stop[OutPutMatrix[, 1L]]),
                                        no = abs(OutPutMatrix[, 6L] - Q.Start[OutPutMatrix[, 1L]]))
@@ -665,122 +628,6 @@ NucleotideOverlap <- function(SyntenyObject,
                                   QueryStopDisplacement,
                                   SubjectStartDisplacement,
                                   SubjectStopDisplacement)
-      ######
-      # Filter Hit Data
-      # if DefaultFilter, predicted orthologs are filtered based on the harmonic mean
-      # of the delta gene length, delta start, and delta stop
-      # FILTER IS CURRENTLY NOT IMPLEMENTED HERE
-      ######
-      
-      #if (DefaultFilter) {
-      #  DeltaStart <- abs(QueryStartDisplacement - SubjectStartDisplacement)
-      #  DeltaStop <- abs(QueryStopDisplacement - SubjectStopDisplacement)
-      #  DeltaGeneLength <- abs(Q.Length[OutPutMatrix[, "QueryGene"]] - S.Length[OutPutMatrix[, "SubjectGene"]])
-      #  ######
-      #  # Filter off harmonic mean of delta start
-      #  ######
-      #  df <- data.frame("y" = sort(DeltaStart),
-      #                   "x" = seq_along(DeltaStart))
-      #  spl <- smooth.spline(df$x,
-      #                       df$y,
-      #                       spar = 0.01)
-      #  predictedline <- predict(spl,
-      #                           x = df$x,
-      #                           deriv = 0)
-      #  derv <- sapply(df$x,
-      #                 function(y) predict(spl,
-      #                                     x = y,
-      #                                     deriv = 1),
-      #                 simplify = TRUE,
-      #                 USE.NAMES = FALSE)
-      #  harm <- which.min(abs(unlist(derv[2, ]) * -1L - 1L))
-      #  Filt <- df$y[harm]
-      #  SFilter <- which(DeltaStart <= Filt)
-      #  ######
-      #  # filter off harmonic mean of delta stop
-      #  ######
-      #  df <- data.frame("y" = sort(DeltaStop),
-      #                   "x" = seq_along(DeltaStop))
-      #  spl <- smooth.spline(df$x,
-      #                       df$y,
-      #                       spar = 0.01)
-      #  predictedline <- predict(spl,
-      #                           x = df$x,
-      #                           deriv = 0)
-      #  derv <- sapply(df$x,
-      #                 function(y) predict(spl,
-      #                                     x = y,
-      #                                     deriv = 1),
-      #                 simplify = TRUE,
-      #                 USE.NAMES = FALSE)
-      #  harm <- which.min(abs(unlist(derv[2, ]) * -1L - 1L))
-      #  Filt <- df$y[harm]
-      #  EFilter <- which(DeltaStop <= Filt)
-      #  ######
-      #  # filter off the harmonic mean of the delta gene lengths
-      #  ######
-      #  df <- data.frame("y" = sort(DeltaGeneLength),
-      #                   "x" = seq_along(DeltaGeneLength))
-      #  spl <- smooth.spline(df$x,
-      #                       df$y,
-      #                       spar = 0.01)
-      #  predictedline <- predict(spl,
-      #                           x = df$x,
-      #                           deriv = 0)
-      #  derv <- sapply(df$x,
-      #                 function(y) predict(spl,
-      #                                     x = y,
-      #                                     deriv = 1),
-      #                 simplify = TRUE,
-      #                 USE.NAMES = FALSE)
-      #  harm <- which.min(abs(unlist(derv[2, ]) * -1L - 1L))
-      #  Filt <- df$y[harm]
-      #  GFilter <- which(DeltaGeneLength <= Filt)
-      #  
-      #  TotalFilt <- sort(unique(c(SFilter,
-      #                             EFilter,
-      #                             GFilter)))
-      #  if (OutputFormat != "Sparse") {
-      #    OutPutMatrix <- OutPutMatrix[TotalFilt, , drop = FALSE]
-      #    DisplacementMatrix <- DisplacementMatrix[TotalFilt, , drop = FALSE]
-      #  } else {
-      #    OutPutMatrix <- OutPutMatrix[TotalFilt, , drop = FALSE]
-      #    QueryStartDisplacement <- QueryStartDisplacement[TotalFilt]
-      #    QueryStopDisplacement <- QueryStopDisplacement[TotalFilt]
-      #    SubjectStartDisplacement <- SubjectStartDisplacement[TotalFilt]
-      #    SubjectStopDisplacement <- SubjectStopDisplacement[TotalFilt]
-      #  }
-      #}
-      #if (!missing(FilterCoverage)) {
-      #  FilterPos <- which(OutPutMatrix[, "Coverage"] < FilterCoverage)
-      #  if (length(FilterPos) > 0L) {
-      #    if (OutputFormat != "Sparse") {
-      #      OutPutMatrix <- OutPutMatrix[-FilterPos, , drop = FALSE]
-      #      DisplacementMatrix <- DisplacementMatrix[-FilterPos, , drop = FALSE]
-      #    } else {
-      #      OutPutMatrix <- OutPutMatrix[-FilterPos, , drop = FALSE]
-      #      QueryStartDisplacement <- QueryStartDisplacement[-FilterPos]
-      #      QueryStopDisplacement <- QueryStopDisplacement[-FilterPos]
-      #      SubjectStartDisplacement <- SubjectStartDisplacement[-FilterPos]
-      #      SubjectStopDisplacement <- SubjectStopDisplacement[-FilterPos]
-      #    }
-      #  }
-      #}
-      #if (!missing(FilterOverlap)) {
-      #  FilterPos <- which(OutPutMatrix[, "ExactOverlap"] < FilterOverlap)
-      #  if (length(FilterPos) > 0L) {
-      #    if (OutputFormat != "Sparse") {
-      #      OutPutMatrix <- OutPutMatrix[-FilterPos, , drop = FALSE]
-      #      DisplacementMatrix <- DisplacementMatrix[-FilterPos, , drop = FALSE]
-      #    } else {
-      #      OutPutMatrix <- OutPutMatrix[-FilterPos, , drop = FALSE]
-      #      QueryStartDisplacement <- QueryStartDisplacement[-FilterPos]
-      #      QueryStopDisplacement <- QueryStopDisplacement[-FilterPos]
-      #      SubjectStartDisplacement <- SubjectStartDisplacement[-FilterPos]
-      #      SubjectStopDisplacement <- SubjectStopDisplacement[-FilterPos]
-      #    }
-      #  }
-      #}
       
       if (Verbose) {
         TotalCounter <- TotalCounter + 1L

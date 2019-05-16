@@ -5,27 +5,19 @@
 \title{A function for determining nucleotide overlap that links genes.}
 \usage{
 NucleotideOverlap(SyntenyObject, GeneCalls, LimitIndex = TRUE,
-  OutputFormat = "Normal", TotalCov = TRUE, Verbose = FALSE,
-  DefaultFilter = FALSE, FilterOverlap, FilterCoverage)
+  OutputFormat = "Normal", Verbose = FALSE)
 }
 \arguments{
-\item{SyntenyObject}{An object of class "Synteny"}
+\item{SyntenyObject}{An object of class "Synteny".}
 
-\item{GeneCalls}{A list of dataframes, one for each genome in SyntenyObject, with named columns "Index", "Start", "Stop", "Strand", and an optional "Annotation" column.}
+\item{GeneCalls}{A named list of data.frames, one for each genome in SyntenyObject, with named columns "Index", "Start", "Stop", "Strand", and an optional "Annotation" column.}
 
 \item{LimitIndex}{Use only the first index of all selected genomes, defaults to TRUE.}
 
 \item{OutputFormat}{"Comprehensive", "Normal", or "Sparse" for how much data to return.}
 
-\item{TotalCov}{Return coverage as a percentage of the smaller gene or both genes, defaults to TRUE.}
-
 \item{Verbose}{Run with progress bar, return total upon completion.}
 
-\item{DefaultFilter}{Filter returned predictions based on the differences in gene length, gene starts, and gene stops.}
-
-\item{FilterOverlap}{Filter returned predictions based on number of exact nucleotides linking two genes, missing by default.}
-
-\item{FilterCoverage}{Filter returned predictions based on the percent coverage of the linking nucleotides, missing by default.}
 }
 \description{
 A function for determining nucleotide overlap that links genes.
@@ -33,5 +25,5 @@ A function for determining nucleotide overlap that links genes.
 \examples{
 NucleotideOverlap()
 }
-\keyword{Orthology,}
+\keyword{Orthology}
 \keyword{Synteny}

@@ -4,7 +4,7 @@
 \alias{ResolveConflicts}
 \title{A function for removing conflicting ortholog predictions}
 \usage{
-ResolveConflicts(SummaryObject, ResolveBy = "Coverage", Verbose = FALSE)
+ResolveConflicts(SummaryObject, ResolveBy = "TotalCoverage", Verbose = FALSE)
 }
 \arguments{
 \item{OrhtologSummary}{A data.frame containing metrics about predicted ortholog pairs. The rownames of this data.frame are the labels of the pair of genes predicted to be orthologs.}
