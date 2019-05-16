@@ -1,5 +1,6 @@
-\name{}
-\alias{}
+\name{ParseSubGraphs}
+\alias{ParseSubGraphs}
+\title{A function for parsing subgraphs of a large adjacency graph.}
 \usage{
 ParseSubGraphs(SubGraphs, DBPATH, GeneCalls, CopyType = "Single",
   InputType = "Groups", OriginGraph, Verbose = TRUE)
