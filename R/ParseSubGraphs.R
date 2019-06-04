@@ -46,10 +46,16 @@ ParseSubGraphs <- function(SubGraphs,
   } else if (InputType == "Graphs") {
     Graphs <- SubGraphs
   }
+  if (InputType == "Graphs") {
+    MultiCopy <- sapply(SubGraphs,
+                        function(x) any(duplicated(str_extract(string = names(x[1]),
+                                                               pattern = "(^[0-9]+)"))))
+  } else if (InputType == "Groups") {
+    MultiCopy <- sapply(SubGraphs,
+                        function(x) any(duplicated(str_extract(string = x,
+                                                               pattern = "(^[0-9]+)"))))
+  }
   
-  MultiCopy <- sapply(SubGraphs,
-                      function(x) any(duplicated(str_extract(string = names(x[1]),
-                                                             pattern = "(^[0-9]+)"))))
   if (CopyType == "Single") {
     Graphs <- Graphs[!MultiCopy]
   } else if (CopyType == "Multi") {
