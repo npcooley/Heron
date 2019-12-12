@@ -12,5 +12,7 @@ export(ResolveConflicts)
 export(ReciprocalBestBlast)
 export(HSSPScore)
 export(ParseSubGraphs)
+export(ggfToDataFrame)
+export(ExtractCDSs)
 
 S3method(print, "Orthologs")
