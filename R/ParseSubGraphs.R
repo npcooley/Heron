@@ -79,8 +79,6 @@ ParseSubGraphs <- function(Groups,
                                  IDMat[, 2],
                                  IDMat[, 3],
                                  sep = "_")
-    print(CurrentGenes)
-    print(CurrentCalls)
     ReturnList[[m1]][[1L]] <- CurrentGenes
     if (all(CurrentCalls$Coding) & !IgnoreDefault) {
       AlignedGenes <- AlignTranslation(myXStringSet = CurrentGenes,
