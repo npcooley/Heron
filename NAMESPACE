@@ -14,5 +14,6 @@ export(HSSPScore)
 export(ParseSubGraphs)
 export(gffToDataFrame)
 export(ExtractCDSs)
+export(PairSummaries)
 
 S3method(print, "Orthologs")
