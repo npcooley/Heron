@@ -309,41 +309,43 @@ PairSummaries <- function(SyntenyLinks,
   # If link statistics imply that PID will likely be give a PID that falls from
   # a distribution of random PIDs, remove that link
   
-  if (Model == "Global") {
-    data("GlobalSelect",
-         envir = environment(),
-         package = "Heron")
-    
-    KeepSet <- predict(object = GlobalSelect,
-                       DF,
-                       type = "response")
-    DF <- DF[KeepSet >= 0.5, ]
-  } else if (Model == "Local") {
-    data("LocalSelect",
-         envir = environment(),
-         package = "Heron")
-    
-    KeepSet <- predict(object = LocalSelect,
-                       DF,
-                       type = "response")
-    DF <- DF[KeepSet >= 0.5, ]
-  } else if (Model == "Exact") {
-    data("ExactSelect",
-         envir = environment(),
-         package = "Heron")
-    
-    KeepSet <- predict(object = ExactSelect,
-                       DF,
-                       type = "response")
-    DF <- DF[KeepSet >= 0.5, ]
-  } else if (!is.character(Model) &
-             !is.null(Model)) {
-    KeepSet <- predict(object = Model,
-                       DF,
-                       type = "response")
-    DF <- DF[KeepSet >= 0.5, ]
-  } else if (is.null(Model)) {
+  if (is.null(Model)) {
     # do nothing
+  } else {
+    if (Model == "Global") {
+      data("GlobalSelect",
+           envir = environment(),
+           package = "Heron")
+      
+      KeepSet <- predict(object = GlobalSelect,
+                         DF,
+                         type = "response")
+      DF <- DF[KeepSet >= 0.5, ]
+    } else if (Model == "Local") {
+      data("LocalSelect",
+           envir = environment(),
+           package = "Heron")
+      
+      KeepSet <- predict(object = LocalSelect,
+                         DF,
+                         type = "response")
+      DF <- DF[KeepSet >= 0.5, ]
+    } else if (Model == "Exact") {
+      data("ExactSelect",
+           envir = environment(),
+           package = "Heron")
+      
+      KeepSet <- predict(object = ExactSelect,
+                         DF,
+                         type = "response")
+      DF <- DF[KeepSet >= 0.5, ]
+    } else if (!is.character(Model) &
+               !is.null(Model)) {
+      KeepSet <- predict(object = Model,
+                         DF,
+                         type = "response")
+      DF <- DF[KeepSet >= 0.5, ]
+    }
   }
   
   if (Verbose) {
