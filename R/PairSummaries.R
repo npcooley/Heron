@@ -161,12 +161,45 @@ PairSummaries <- function(SyntenyLinks,
               IgnoreDefaultStringSet) {
             # align as nucleotides
             IDType[[Count]][i] <- "DNA"
-            QuerySeq <- extractAt(x = Genomes[[m1]][[SyntenyLinks[[m1, m2]][i, "QueryIndex"]]],
-                                  at = IRanges(start = GeneCalls[[m1]][SyntenyLinks[[m1, m2]][i, "QueryGene"], "Start"],
-                                               end = GeneCalls[[m1]][SyntenyLinks[[m1, m2]][i, "QueryGene"], "Stop"]))
-            SubjectSeq <- extractAt(x = Genomes[[m2]][[SyntenyLinks[[m1, m2]][i, "SubjectIndex"]]],
-                                    at = IRanges(start = GeneCalls[[m2]][SyntenyLinks[[m1, m2]][i, "SubjectGene"], "Start"],
-                                                 end = GeneCalls[[m2]][SyntenyLinks[[m1, m2]][i, "SubjectGene"], "Stop"]))
+            # if query gene spans the end of it's contig
+            # All Seqs that span the end of a contig SHOULD have the correct
+            # match splitting already
+            if (grepl(pattern = "Y",
+                      x = GeneCalls[[m1]][SyntenyLinks[[m1, m2]][i, "QueryGene"], "Match"])) {
+              QueryPositions <- do.call(rbind,
+                                        strsplit(strsplit(GeneCalls[[m1]][SyntenyLinks[[m1, m2]][i, "QueryGene"], "Match"],
+                                                          split = "Y",
+                                                          fixed = TRUE)[[1]],
+                                                 split = "X",
+                                                 fixed = TRUE))
+              QuerySeq <- DNAStringSet(unlist(extractAt(x = Genomes[[m1]][[SyntenyLinks[[m1, m2]][i, "QueryIndex"]]],
+                                                        at = IRanges(start = as.integer(QueryPositions[, 1L]),
+                                                                     end = as.integer(QueryPositions[, 2L])))))
+            } else {
+              QuerySeq <- extractAt(x = Genomes[[m1]][[SyntenyLinks[[m1, m2]][i, "QueryIndex"]]],
+                                    at = IRanges(start = GeneCalls[[m1]][SyntenyLinks[[m1, m2]][i, "QueryGene"], "Start"],
+                                                 end = GeneCalls[[m1]][SyntenyLinks[[m1, m2]][i, "QueryGene"], "Stop"]))
+            }
+            # if subject gene spans the end of it's contig
+            # All Seqs that span the end of a contig SHOULD have the correct
+            # match splitting already
+            if (grepl(pattern = "Y",
+                      x = GeneCalls[[m2]][SyntenyLinks[[m1, m2]][i, "SubjectGene"], "Match"])) {
+              SubjectPositions <- do.call(rbind,
+                                          strsplit(strsplit(GeneCalls[[m2]][SyntenyLinks[[m1, m2]][i, "SubjectGene"], "Match"],
+                                                            split = "Y",
+                                                            fixed = TRUE)[[1]],
+                                                   split = "X",
+                                                   fixed = TRUE))
+              SubjectSeq <- DNAStringSet(unlist(extractAt(x = Genomes[[m2]][[SyntenyLinks[[m1, m2]][i, "SubjectIndex"]]],
+                                                          at = IRanges(start = as.integer(SubjectPositions[, 1L]),
+                                                                       end = as.integer(SubjectPositions[, 2L])))))
+            } else {
+              SubjectSeq <- extractAt(x = Genomes[[m2]][[SyntenyLinks[[m1, m2]][i, "SubjectIndex"]]],
+                                      at = IRanges(start = GeneCalls[[m2]][SyntenyLinks[[m1, m2]][i, "SubjectGene"], "Start"],
+                                                   end = GeneCalls[[m2]][SyntenyLinks[[m1, m2]][i, "SubjectGene"], "Stop"]))
+            }
+            
             Scores[[Count]][[i]] <- c(QuerySeq,
                                       SubjectSeq)
             if (GeneCalls[[m1]][SyntenyLinks[m1, m2][[1]][i, "QueryGene"], "Strand"] == 1L) {
