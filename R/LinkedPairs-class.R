@@ -1,10 +1,32 @@
-print.Orthologs <- function(x,
+`[.LinkedPairs` <- function(x, i, j, ...) {
+  ans <- NextMethod("[", x)
+  
+  if (missing(j))
+    return(ans)
+  
+  d <- dim(x)
+  I <- seq_len(d[1])
+  J <- seq_len(d[1])
+  d <- dimnames(x)
+  names(I) <- d[[1]]
+  names(J) <- d[[1]]
+  I <- I[i]
+  J <- J[j]
+  if (length(I) >= 2 &&
+      length(I)==length(J) &&
+      all(I==J) &&
+      !any(duplicated(I)))
+    class(ans) <- "LinkedPairs"
+  return(ans)
+}
+
+print.LinkedPairs <- function(x,
                             quote = FALSE,
                             right = TRUE,
                             ...) {
   d <- dim(x)
   if (is.null(d)) {
-    stop ("x must be a square object of class 'Orthologs'.")
+    stop ("x must be a square object of class 'LinkedPairs'.")
   }
   m <- matrix("",
               nrow = d[1],

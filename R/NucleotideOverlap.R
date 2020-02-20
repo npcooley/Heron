@@ -1,14 +1,6 @@
-#' A function for determining nucleotide overlap that links genes.
-#' 
-#' @param SyntenyObject An object of class "Synteny"
-#' @param GeneCalls A list of dataframes, one for each genome in SyntenyObject, with named columns "Index", "Start", "Stop", "Strand", and an optional "Annotation" column.
-#' @param LimitIndex Use only the first index of all selected genomes, defaults to TRUE.
-#' @param OutputFormat "Comprehensive", "Normal", or "Sparse" for how much data to return.
-#' @param Verbose Run with progress bar, return total upon completion.
-#' @keywords Orthology Synteny
-#' @export
-#' @examples
-#' NucleotideOverlap()
+# Author: Nicholas Cooley
+# Maintainer: Nicholas Cooley
+# Contact: npc19@pitt.edu
 
 NucleotideOverlap <- function(SyntenyObject,
                               GeneCalls,
@@ -62,18 +54,6 @@ NucleotideOverlap <- function(SyntenyObject,
                          ncol = L)
   TotalLength <- L^2 - L
   TotalCounter <- 0L
-  ######
-  # Function to extend matrices
-  ######
-  Ext.Check <- function(CurrentMatrix,
-                        PositionCounter,
-                        AdditionalCols) {
-    if (PositionCounter > ncol(CurrentMatrix) * 0.95) {
-      CurrentMatrix <- cbind(CurrentMatrix,
-                             AdditionalCols)
-    }
-    return(CurrentMatrix)
-  }
   ######
   # scroll through every hit table in the synteny object
   ######
@@ -154,9 +134,10 @@ NucleotideOverlap <- function(SyntenyObject,
       QueryMatrix <- matrix(NA_integer_,
                             nrow = 8L,
                             ncol = nrow(CurrentHitTable))
-      ExtraCols <- QueryMatrix
       HitCounter <- 1L
       AddCounter <- 1L
+      DimLimit <- nrow(CurrentHitTable) / 2
+      DimAdjust <- 2L
       for (z1 in seq_along(Q.Start)) {
         ######
         # loop through the starts of the query genes as they have been ordered
@@ -217,9 +198,14 @@ NucleotideOverlap <- function(SyntenyObject,
                                            S.Strand,
                                            Current.QHI,
                                            Current.SHI)
-            QueryMatrix <- Ext.Check(CurrentMatrix = QueryMatrix,
-                                     PositionCounter = AddCounter,
-                                     AdditionalCols = ExtraCols)
+            if (AddCounter >= DimLimit) {
+              QueryMatrix <- cbind(QueryMatrix,
+                                   matrix(data = NA_integer_,
+                                          nrow = nrow(QueryMatrix),
+                                          ncol = ncol(QueryMatrix) * DimAdjust))
+              DimLimit <- ncol(QueryMatrix) / 2
+              DimAdjust <- DimAdjust * 2L
+            }
             # record the add counter every time a new row is added to the query matrix
             AddCounter <- AddCounter + 1L
             # record the hit counter every time you iterate to the next hit
@@ -247,9 +233,14 @@ NucleotideOverlap <- function(SyntenyObject,
                                            S.Strand,
                                            Current.QHI,
                                            Current.SHI)
-            QueryMatrix <- Ext.Check(CurrentMatrix = QueryMatrix,
-                                     PositionCounter = AddCounter,
-                                     AdditionalCols = ExtraCols)
+            if (AddCounter >= DimLimit) {
+              QueryMatrix <- cbind(QueryMatrix,
+                                   matrix(data = NA_integer_,
+                                          nrow = nrow(QueryMatrix),
+                                          ncol = ncol(QueryMatrix) * DimAdjust))
+              DimLimit <- ncol(QueryMatrix) / 2
+              DimAdjust <- DimAdjust * 2L
+            }
             # record the add counter every time a new row is added to the query matrix
             AddCounter <- AddCounter + 1L
             # record the hit counter every time you iterate to the next hit
@@ -283,9 +274,14 @@ NucleotideOverlap <- function(SyntenyObject,
                                            S.Strand,
                                            Current.QHI,
                                            Current.SHI)
-            QueryMatrix <- Ext.Check(CurrentMatrix = QueryMatrix,
-                                     PositionCounter = AddCounter,
-                                     AdditionalCols = ExtraCols)
+            if (AddCounter >= DimLimit) {
+              QueryMatrix <- cbind(QueryMatrix,
+                                   matrix(data = NA_integer_,
+                                          nrow = nrow(QueryMatrix),
+                                          ncol = ncol(QueryMatrix) * DimAdjust))
+              DimLimit <- ncol(QueryMatrix) / 2
+              DimAdjust <- DimAdjust * 2L
+            }
             # record the add counter every time a new row is added to the query matrix
             AddCounter <- AddCounter + 1L
             break
@@ -319,9 +315,14 @@ NucleotideOverlap <- function(SyntenyObject,
                                            S.Strand,
                                            Current.QHI,
                                            Current.SHI)
-            QueryMatrix <- Ext.Check(CurrentMatrix = QueryMatrix,
-                                     PositionCounter = AddCounter,
-                                     AdditionalCols = ExtraCols)
+            if (AddCounter >= DimLimit) {
+              QueryMatrix <- cbind(QueryMatrix,
+                                   matrix(data = NA_integer_,
+                                          nrow = nrow(QueryMatrix),
+                                          ncol = ncol(QueryMatrix) * DimAdjust))
+              DimLimit <- ncol(QueryMatrix) / 2
+              DimAdjust <- DimAdjust * 2L
+            }
             # record the add counter every time a new row is added to the query matrix
             AddCounter <- AddCounter + 1L
             break
@@ -385,12 +386,13 @@ NucleotideOverlap <- function(SyntenyObject,
                                                      drop = FALSE]),
                                    ,
                                    drop = FALSE]
+        DimAdjust <- 2L
+        DimLimit <- ncol(OverLapMatrix) / 2
         ######
         # Part 2!
         # Hits that were recorded as being within a gene in the query
         # are now tested again the genes in the subject
         ######
-        ExtraCols <- OverLapMatrix
         QueryMap <- QueryMatrix[, "CurrentGene"]
         S.HitStarts <- QueryMatrix[, "SubjectNucleotidePositionLeft"]
         S.HitEnds <- QueryMatrix[, "SubjectNucleotidePositionRight"]
@@ -432,9 +434,14 @@ NucleotideOverlap <- function(SyntenyObject,
                                                QueryHitRight,
                                                SubjectHitLeft,
                                                SubjectHitRight)
-              OverLapMatrix <- Ext.Check(CurrentMatrix = OverLapMatrix,
-                                         PositionCounter = AddCounter,
-                                         AdditionalCols = ExtraCols)
+              if (AddCounter >= DimLimit) {
+                OverLapMatrix <- cbind(OverLapMatrix,
+                                       matrix(data = NA_integer_,
+                                              nrow = nrow(OverLapMatrix),
+                                              ncol = ncol(OverLapMatrix) * DimAdjust))
+                DimLimit <- ncol(OverLapMatrix) / 2
+                DimAdjust <- DimAdjust * 2L
+              }
               AddCounter <- AddCounter + 1L
               HitCounter <- HitCounter + 1L
             } else if (S.HitStarts[HitCounter] >= S.Start[z2] &
@@ -460,9 +467,14 @@ NucleotideOverlap <- function(SyntenyObject,
                                                QueryHitRight,
                                                SubjectHitLeft,
                                                SubjectHitRight)
-              OverLapMatrix <- Ext.Check(CurrentMatrix = OverLapMatrix,
-                                         PositionCounter = AddCounter,
-                                         AdditionalCols = ExtraCols)
+              if (AddCounter >= DimLimit) {
+                OverLapMatrix <- cbind(OverLapMatrix,
+                                       matrix(data = NA_integer_,
+                                              nrow = nrow(OverLapMatrix),
+                                              ncol = ncol(OverLapMatrix) * DimAdjust))
+                DimLimit <- ncol(OverLapMatrix) / 2
+                DimAdjust <- DimAdjust * 2L
+              }
               AddCounter <- AddCounter + 1L
               HitCounter <- HitCounter + 1L
             } else if (S.HitStarts[HitCounter] >= S.Start[z2] &
@@ -491,9 +503,14 @@ NucleotideOverlap <- function(SyntenyObject,
                                                QueryHitRight,
                                                SubjectHitLeft,
                                                SubjectHitRight)
-              OverLapMatrix <- Ext.Check(CurrentMatrix = OverLapMatrix,
-                                         PositionCounter = AddCounter,
-                                         AdditionalCols = ExtraCols)
+              if (AddCounter >= DimLimit) {
+                OverLapMatrix <- cbind(OverLapMatrix,
+                                       matrix(data = NA_integer_,
+                                              nrow = nrow(OverLapMatrix),
+                                              ncol = ncol(OverLapMatrix) * DimAdjust))
+                DimLimit <- ncol(OverLapMatrix) / 2
+                DimAdjust <- DimAdjust * 2L
+              }
               AddCounter <- AddCounter + 1L
               break
             } else if (S.HitStarts[HitCounter] <= S.Start[z2] &
@@ -521,9 +538,14 @@ NucleotideOverlap <- function(SyntenyObject,
                                                QueryHitRight,
                                                SubjectHitLeft,
                                                SubjectHitRight)
-              OverLapMatrix <- Ext.Check(CurrentMatrix = OverLapMatrix,
-                                         PositionCounter = AddCounter,
-                                         AdditionalCols = ExtraCols)
+              if (AddCounter >= DimLimit) {
+                OverLapMatrix <- cbind(OverLapMatrix,
+                                       matrix(data = NA_integer_,
+                                              nrow = nrow(OverLapMatrix),
+                                              ncol = ncol(OverLapMatrix) * DimAdjust))
+                DimLimit <- ncol(OverLapMatrix) / 2
+                DimAdjust <- DimAdjust * 2L
+              }
               AddCounter <- AddCounter + 1L
               break
             } else if (S.HitStarts[HitCounter] > S.Stop[z2]) {
@@ -549,7 +571,9 @@ NucleotideOverlap <- function(SyntenyObject,
                                      ,
                                      drop = FALSE]
       OverLapMatrix <- OverLapMatrix[order(OverLapMatrix[, 1L, drop = FALSE],
-                                           OverLapMatrix[, 2L, drop = FALSE]),
+                                           OverLapMatrix[, 2L, drop = FALSE],
+                                           OverLapMatrix[, 4L, drop = FALSE],
+                                           OverLapMatrix[, 5L, drop = FALSE]),
                                      ,
                                      drop = FALSE]
       ######
@@ -574,11 +598,34 @@ NucleotideOverlap <- function(SyntenyObject,
         ######
         RowCount <- 1L
         CondenseCount <- 1L
+        Row <- 2L
         while (CondenseCount <= nrow(OverLapMatrix)) {
-          z5 <- which(OverLapMatrix[, 1L] == OverLapMatrix[CondenseCount, 1L] &
-                        OverLapMatrix[, 2L] == OverLapMatrix[CondenseCount, 2L] &
-                        OverLapMatrix[, 4L] == OverLapMatrix[CondenseCount, 4L] &
-                        OverLapMatrix[, 5L] == OverLapMatrix[CondenseCount, 5L])
+          # z5 <- which(OverLapMatrix[, 1L] == OverLapMatrix[CondenseCount, 1L] &
+          #               OverLapMatrix[, 2L] == OverLapMatrix[CondenseCount, 2L] &
+          #               OverLapMatrix[, 4L] == OverLapMatrix[CondenseCount, 4L] &
+          #               OverLapMatrix[, 5L] == OverLapMatrix[CondenseCount, 5L])
+          while (Row <= nrow(OverLapMatrix)) {
+            if (OverLapMatrix[Row, 5L] != OverLapMatrix[CondenseCount, 5L]) {
+              break
+            }
+            if (OverLapMatrix[Row, 4L] != OverLapMatrix[CondenseCount, 4L]) {
+              break
+            }
+            if (OverLapMatrix[Row, 2L] != OverLapMatrix[CondenseCount, 2L]) {
+              break
+            }
+            if (OverLapMatrix[Row, 1L] != OverLapMatrix[CondenseCount, 1L]) {
+              break
+            }
+            Row <- Row + 1L
+          }
+          
+          z5 <- CondenseCount:(Row - 1L)
+          # if (length(z6) != length(z5)) {
+          #   print(z5)
+          #   print(z6)
+          #   stop()
+          # }
           OutPutMatrix[RowCount, ] <- c(OverLapMatrix[CondenseCount, 1L],
                                         OverLapMatrix[CondenseCount, 2L],
                                         sum(OverLapMatrix[z5, 3L]),
@@ -662,7 +709,7 @@ NucleotideOverlap <- function(SyntenyObject,
     print(TotalTimeStop - TotalTimeStart)
   }
   dimnames(ResultMatrix) <- dimnames(SyntenyObject)
-  class(ResultMatrix) <- "Orthologs"
+  class(ResultMatrix) <- "LinkedPairs"
   return(ResultMatrix)
 }
 

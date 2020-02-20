@@ -1,29 +1,60 @@
 \name{gffToDataFrame}
 \alias{gffToDataFrame}
-\title{Convert gff files directly to a dataframe}
+\title{
+Generate a DataFrame of gene calls from a gff3 file
+}
+\description{
+Generate a DataFrame of gene calls from a gff3 file
+}
 \usage{
-gffToDataFrame(gff, additionalAttrs = NULL, additionalTypes = NULL, rawTableOnly = FALSE)
+gffToDataFrame(GFF,
+               AdditionalAttrs = NULL,
+               AdditionalTypes = NULL,
+               RawTableOnly = FALSE,
+               Verbose = FALSE)
 }
 
 \arguments{
-
-\item{gff}{A location or address for a gff3 file.}
-
-\item{additionalAttrs}{Additional attribute fields to include in pull.}
-
-\item{additionalTypes}{Additional line types to parse further.}
-
-\item{rawTableOnly}{Logical specifying whether to parse GFF file into more succinct format.}
-
+  \item{GFF}{
+A url or filepath specifying a gff3 file to import
+}
+  \item{AdditionalAttrs}{
+A vector of character strings to expand the attributes to pull.
+}
+  \item{AdditionalTypes}{
+A vector of character strings to query from the the ''Types'' column.
+}
+  \item{RawTableOnly}{
+Logical specifying whether to return the raw imported GFF without complex parsing.
+}
+  \item{Verbose}{
+Logical specifying whether to print a progress bar and time difference.
+}
+}
+\details{
+Import a gff file into a rectangular parsable object.
+}
+\value{
+A DataFrame with relevant information extracted from a GFF.
+}
+\references{
+TBA
+}
+\author{
+Nicholas Cooley \email{npc19@pitt.edu}
+}
+\note{
+TBA
 }
 
-\description{
-Convert a gff file into a raw dataframe, or one that is parsed down to specific entry types.
+\seealso{
+TBA
 }
-
 \examples{
-gffToDataFrame()
+ImportedGFF <- gffToDataFrame(GFF = system.file("extdata",
+                                                "GCA_006740685.1_ASM674068v1_genomic.gff.gz",
+                                                package = "SynExtend"),
+                              Verbose = TRUE)
 }
 
 \keyword{GeneCalls}
-\keyword{gff}
