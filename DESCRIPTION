@@ -1,6 +1,6 @@
 Package: Heron
 Title: A Package of Various Genomics Tools
-Version: 0.0.0.9024
+Version: 0.0.0.9025
 Authors@R: c(
 	person("Nicholas", "Cooley", email = "npc19@pitt.edu", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-6029-304X")),
 	person("Adelle", "Fernando", email = "Adelle.fernando@gmail.com", role = "ctb"))
